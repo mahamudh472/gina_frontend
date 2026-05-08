@@ -1,0 +1,344 @@
+.page {
+  padding: 80px 40px; /* Increased top padding */
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 80px; /* Increased section gap to match report (space-y-12/80px) */
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.topLogo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: -20px; /* Pull header closer to logo */
+}
+
+.logoImg {
+  height: 38px;
+  opacity: 1;
+}
+
+.header {
+  text-align: center; /* Center text as seen in mockup */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.sub {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7); /* Muted white as reported */
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+/* Current plan banner */
+.currentBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 40px;
+  background: rgba(255, 255, 255, 0.03); /* Reported as darker glass */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  gap: 32px;
+  backdrop-filter: blur(12px);
+}
+
+.bannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.bannerIcon {
+  width: 56px;
+  height: 56px;
+  background: rgba(242, 202, 80, 0.1);
+  border: 1px solid rgba(242, 202, 80, 0.3);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f2ca50;
+}
+
+.bannerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bannerPlanRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bannerPlanName {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.activeBadgeSmall {
+  background: rgba(242, 202, 80, 0.2); /* Reported background */
+  color: #f2ca50; /* Reported text color */
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(242, 202, 80, 0.3);
+}
+
+.bannerPlanDetails {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.bannerRight {
+  display: flex;
+}
+
+.statsBox {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2); /* Darker background as reported */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 12px 0;
+}
+
+.statItem {
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 120px;
+}
+
+.statIcon {
+  color: #f2ca50;
+}
+
+.statValue {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statDivider {
+  width: 1px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sectionTitle {
+  margin-bottom: -40px; /* Pull grid closer to section title */
+}
+
+.sectionTitle h2 {
+  font-size: 1.875rem; /* Matches report (30px) */
+  font-weight: 600;
+  color: #fff;
+}
+
+/* Plans grid */
+.plansGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.planCard {
+  background: rgba(255, 255, 255, 0.05); /* Reported as white/5 */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Reported as white/20 */
+  border-radius: 24px; /* Matches report (16px/1rem, but usually visually slightly larger is better for cards) */
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px); /* Reported glass effect */
+}
+
+.highlightedCard {
+  background: rgba(81, 87, 47, 0.72) !important; /* Specific golden/olive reported */
+  border: 1px solid #9a8a45 !important; /* Specific border reported */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.cardIconWrapper {
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.freeIcon { color: rgba(255,255,255,0.6); }
+.proIcon { color: #f2ca50; border-color: rgba(242, 202, 80, 0.3); }
+.premiumIcon { color: #a884f3; border-color: rgba(168, 132, 243, 0.3); }
+
+.currentPlanBadge {
+  background: rgba(242, 202, 80, 0.2);
+  color: #f2ca50;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(242, 202, 80, 0.3);
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.planName {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.planPrice {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.priceAmount {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.pricePeriod {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.featureList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.feature {
+  display: flex;
+  align-items: flex-start; /* Align check to top of text */
+  gap: 10px;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.checkIcon {
+  color: #f2ca50;
+  margin-top: 4px;
+}
+
+.cardFooter {
+  margin-top: auto;
+}
+
+.planBtn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnPrimary {
+  background: rgba(81, 87, 47, 0.72); /* Matches card reported */
+  color: #f2ca50; /* Matches reported text color */
+  border: 1px solid #9a8a45;
+}
+
+.btnPrimary:hover {
+  background: rgba(91, 97, 57, 0.85);
+  transform: translateY(-2px);
+}
+
+.btnSecondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btnSecondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Premium Upgrade button specific color */
+.premiumCard .planBtn {
+  color: #a78bfa;
+}
+
+@media (max-width: 1100px) {
+  .plansGrid {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .currentBanner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px;
+  }
+  
+  .bannerRight {
+    width: 100%;
+  }
+  
+  .statsBox {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .title {
+    font-size: 2.2rem;
+  }
+}

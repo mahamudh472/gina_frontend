@@ -1,0 +1,207 @@
+.main {
+  min-height: 100vh;
+}
+
+.hero {
+  position: relative;
+  padding: 160px 0 100px;
+  overflow: hidden;
+}
+
+.heroBg {
+  position: absolute;
+  inset: 0;
+  background-image: url('/cosmic-bg.png');
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+
+.heroBg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(8,12,20,0.94) 0%, rgba(8,12,20,0.78) 100%);
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.heroTitle {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.heroAccent { color: var(--color-accent); }
+
+.heroSub {
+  font-size: 1.05rem;
+  color: var(--color-text-muted);
+  max-width: 540px;
+  line-height: 1.7;
+}
+
+.voicesSection {
+  padding: 80px 0;
+}
+
+.voicesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.voiceCard {
+  overflow: hidden;
+}
+
+.voiceTop {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.voiceEmoji {
+  font-size: 5rem;
+}
+
+.playBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.playBtn:hover {
+  background: var(--color-accent);
+  color: #0b0f17;
+  border-color: var(--color-accent);
+}
+
+.voiceBody {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.voiceName {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.voiceDesc {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.voiceTags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  padding: 4px 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.qualities {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quality {
+  font-size: 0.875rem;
+  color: var(--color-text-sub);
+}
+
+.soundsSection {
+  padding: 80px 0;
+  background: rgba(13,19,32,0.5);
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.sectionTitle {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 800;
+  color: #fff;
+}
+
+.sectionSub {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+.soundsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.soundCard {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.soundIcon {
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.soundLabel {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-sub);
+}
+
+@media (max-width: 768px) {
+  .voicesGrid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+  .soundsGrid { grid-template-columns: repeat(2, 1fr); }
+}
