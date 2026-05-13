@@ -1,28 +1,27 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import styles from "./page.module.css";
 import Link from "next/link";
 import { Star, Users, Headphones, Music, BookOpen, Waves, ChevronDown, Check, Sparkles, Zap } from "lucide-react";
 
 function HeroSection() {
   return (
-    <section className={styles.hero}>
-      <div className={styles.heroBg} />
-      <div className={`${styles.heroContent} container`}>
-        <div className={styles.heroBadge}><Sparkles size={12} /> KI-generierte Meditationen</div>
-        <h1 className={styles.heroTitle}>
+    <section className="relative min-h-screen flex items-center overflow-hidden">
+      <div className="absolute inset-0 bg-[url('/banner-bg.svg')] bg-cover bg-[center_top] z-0" />
+      <div className="relative z-10 pt-[100px] pb-[80px] max-w-[720px] container">
+        <div className="badge mb-7 animate-fade-in-up"><Sparkles size={12} /> KI-generierte Meditationen</div>
+        <h1 className="text-[clamp(2.4rem,5vw,4rem)] font-extrabold leading-[1.15] tracking-tight text-white mb-6 animate-fade-in-up [animation-delay:0.1s]">
           Entfalte dein Potenzial
-          <br /><span className={styles.heroAccent}>mit deiner individuellen</span>
+          <br /><span className="text-accent">mit deiner individuellen</span>
           <br />Meditation.
         </h1>
-        <p className={styles.heroSub}>
+        <p className="text-[1.1rem] leading-[1.7] text-text-sub max-w-[560px] mb-10 animate-fade-in-up [animation-delay:0.2s]">
           VISULARA erschafft einzigartige Meditationen basierend auf deiner Absicht, Stimme und Bedürfnissen – personalisiert wie nie zuvor.
         </p>
-        <div className={styles.heroCtas}>
+        <div className="flex items-center gap-4 flex-wrap mb-5 animate-fade-in-up [animation-delay:0.3s]">
           <Link href="/meditation/neue-meditation" className="btn-primary"><Sparkles size={16} />Meditation erstellen</Link>
           <Link href="/#preise" className="btn-secondary">Pläne entdecken</Link>
         </div>
-        <p className={styles.heroNote}>Kein Konto erforderlich · Kostenlos testen</p>
+        <p className="text-[0.8rem] text-text-muted animate-fade-in-up [animation-delay:0.4s]">Kein Konto erforderlich · Kostenlos testen</p>
       </div>
     </section>
   );
@@ -35,13 +34,13 @@ function StatsBar() {
     { icon: <Headphones size={18} />, value: "85.000+", label: "Meditationen generiert" },
   ];
   return (
-    <div className={styles.statsBar}>
-      <div className={`${styles.statsInner} container`}>
+    <div className="relative z-20 bg-[#0d1320]/85 backdrop-blur-[20px] border-y border-border py-6">
+      <div className="flex items-center justify-center gap-16 flex-wrap container">
         {stats.map((s, i) => (
-          <div key={i} className={styles.statItem}>
-            <span className={styles.statIcon}>{s.icon}</span>
-            <span className={styles.statValue}>{s.value}</span>
-            <span className={styles.statLabel}>{s.label}</span>
+          <div key={i} className="flex items-center gap-2.5">
+            <span className="text-accent flex">{s.icon}</span>
+            <span className="text-[1.2rem] font-bold text-white">{s.value}</span>
+            <span className="text-[0.85rem] text-text-muted">{s.label}</span>
           </div>
         ))}
       </div>
@@ -57,20 +56,20 @@ function FeaturesSection() {
     { icon: <Zap size={28} />, title: "KI-Personalisierung", desc: "Die KI passt jede Meditation individuell an deine Stimmung und Bedürfnisse an.", tag: "KI-gestützt" },
   ];
   return (
-    <section className={styles.features} id="features">
+    <section className="py-[100px] relative" id="features">
       <div className="container">
-        <div className={styles.sectionHeader}>
+        <div className="text-center mb-14 flex flex-col items-center gap-4">
           <span className="badge">Features</span>
-          <h2 className={styles.sectionTitle}>Alles für deine perfekte Meditation</h2>
-          <p className={styles.sectionSub}>VISULARA kombiniert KI-Technologie mit bewährten Meditationstechniken.</p>
+          <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-extrabold tracking-tight text-white">Alles für deine perfekte Meditation</h2>
+          <p className="text-[1rem] text-text-muted max-w-[540px] leading-[1.6]">VISULARA kombiniert KI-Technologie mit bewährten Meditationstechniken.</p>
         </div>
-        <div className={styles.featuresGrid}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {features.map((f, i) => (
-            <div key={i} className={`${styles.featureCard} glass-card`}>
-              <div className={styles.featureIcon}>{f.icon}</div>
-              <span className={styles.featureTag}>{f.tag}</span>
-              <h3 className={styles.featureTitle}>{f.title}</h3>
-              <p className={styles.featureDesc}>{f.desc}</p>
+            <div key={i} className="glass-card p-8 flex flex-col gap-3">
+              <div className="w-[52px] h-[52px] rounded-md bg-accent/10 border border-accent/20 flex items-center justify-center text-accent">{f.icon}</div>
+              <span className="text-[0.72rem] font-bold tracking-widest uppercase text-accent">{f.tag}</span>
+              <h3 className="text-[1.15rem] font-bold text-white">{f.title}</h3>
+              <p className="text-[0.9rem] leading-[1.65] text-text-muted">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -87,22 +86,22 @@ function HowItWorks() {
     { num: "04", title: "Genieße deine Meditation", desc: "VISULARA generiert eine einzigartige Meditation nur für dich.", img: "/hero-step5.svg" },
   ];
   return (
-    <section className={styles.howItWorks} id="ueber">
+    <section className="py-[100px] bg-[#0d1320]/50" id="ueber">
       <div className="container">
-        <div className={styles.sectionHeader}>
+        <div className="text-center mb-14 flex flex-col items-center gap-4">
           <span className="badge">Wie es funktioniert</span>
-          <h2 className={styles.sectionTitle}>In 4 Schritten zur perfekten Meditation</h2>
+          <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-extrabold tracking-tight text-white">In 4 Schritten zur perfekten Meditation</h2>
         </div>
-        <div className={styles.stepsGrid}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((s, i) => (
-            <div key={i} className={styles.step}>
-              <div className={styles.stepImgWrap}>
+            <div key={i} className="flex flex-col gap-3 p-0 relative group">
+              <div className="w-full aspect-video bg-white/3 border border-border rounded-lg overflow-hidden mb-4 flex items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={s.img} alt="" className={styles.stepImg} />
+                <img src={s.img} alt="" className="w-full h-full object-cover opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
               </div>
-              <span className={styles.stepNum}>{s.num}</span>
-              <h3 className={styles.stepTitle}>{s.title}</h3>
-              <p className={styles.stepDesc}>{s.desc}</p>
+              <span className="text-[2rem] font-black text-accent/20 leading-none">{s.num}</span>
+              <h3 className="text-[1rem] font-bold text-white">{s.title}</h3>
+              <p className="text-[0.875rem] text-text-muted leading-[1.6]">{s.desc}</p>
             </div>
           ))}
         </div>
@@ -117,23 +116,25 @@ function VoicesSection() {
     { name: "Serena", desc: "Sanft, beruhigend, fürsorglich", tags: ["Sanft", "Fließend", "Weitreichend"], img: "/voice-serena.svg" },
   ];
   return (
-    <section className={styles.voices} id="stimmen">
+    <section className="py-[100px]" id="stimmen">
       <div className="container">
-        <div className={styles.sectionHeader}>
+        <div className="text-center mb-14 flex flex-col items-center gap-4">
           <span className="badge">Himmlische Stimmen</span>
-          <h2 className={styles.sectionTitle}>Deine Meditationsbegleiter</h2>
-          <p className={styles.sectionSub}>Wähle die Stimme, die deine Reise begleiten soll.</p>
+          <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-extrabold tracking-tight text-white">Deine Meditationsbegleiter</h2>
+          <p className="text-[1rem] text-text-muted max-w-[540px] leading-[1.6]">Wähle die Stimme, die deine Reise begleiten soll.</p>
         </div>
-        <div className={styles.voicesGrid}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[800px] mx-auto">
           {voices.map((v, i) => (
-            <div key={i} className={`${styles.voiceCard} glass-card`}>
-              <div className={styles.voiceAvatar}>
+            <div key={i} className="glass-card py-10 px-8 flex flex-col items-center gap-4 text-center">
+              <div className="w-[100px] h-[100px] rounded-full bg-white/4 flex items-center justify-center border border-white/10 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={v.img} alt={v.name} className={styles.avatarImg} />
+                <img src={v.img} alt={v.name} className="w-full h-full object-cover" />
               </div>
-              <h3 className={styles.voiceName}>{v.name}</h3>
-              <p className={styles.voiceDesc}>{v.desc}</p>
-              <div className={styles.voiceTags}>{v.tags.map((t) => <span key={t} className={styles.voiceTag}>{t}</span>)}</div>
+              <h3 className="text-[1.4rem] font-bold text-white">{v.name}</h3>
+              <p className="text-[0.9rem] text-text-muted">{v.desc}</p>
+              <div className="flex gap-2 flex-wrap justify-center">
+                {v.tags.map((t) => <span key={t} className="px-3 py-1 bg-white/6 border border-border rounded-pill text-[0.78rem] text-text-muted">{t}</span>)}
+              </div>
               <Link href="/meditation/neue-meditation" className="btn-secondary">Mit {v.name} meditieren</Link>
             </div>
           ))}
@@ -162,33 +163,33 @@ function PricingSection() {
     },
   ];
   return (
-    <section className={styles.pricing} id="preise">
+    <section className="py-[100px] bg-[#0d1320]/50" id="preise">
       <div className="container">
-        <div className={styles.sectionHeader}>
+        <div className="text-center mb-14 flex flex-col items-center gap-4">
           <span className="badge">Preise</span>
-          <h2 className={styles.sectionTitle}>Wähle deinen Plan</h2>
-          <p className={styles.sectionSub}>Starte kostenlos und upgrade jederzeit.</p>
+          <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-extrabold tracking-tight text-white">Wähle deinen Plan</h2>
+          <p className="text-[1rem] text-text-muted max-w-[540px] leading-[1.6]">Starte kostenlos und upgrade jederzeit.</p>
         </div>
-        <div className={styles.pricingGrid}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start max-w-[1200px] mx-auto">
           {plans.map((p, i) => (
-            <div key={i} className={`${styles.pricingCard} glass-card ${p.highlighted ? styles.highlighted : ""}`}>
-              {p.highlighted && <div className={styles.popularBadge}>Beliebteste Wahl</div>}
-              <div className={styles.planHeader}>
-                <span className={styles.planName}>{p.name}</span>
-                <p className={styles.planDesc}>{p.desc}</p>
+            <div key={i} className={`glass-card py-9 px-7 flex flex-col gap-5 relative ${p.highlighted ? "border-border-accent shadow-[0_0_32px_rgba(242,202,80,0.12)] lg:-translate-y-2" : ""}`}>
+              {p.highlighted && <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-accent text-[#0b0f17] text-[0.72rem] font-bold px-3.5 py-1 rounded-pill whitespace-nowrap">Beliebteste Wahl</div>}
+              <div className="flex flex-col gap-1">
+                <span className="text-[1.1rem] font-bold text-white">{p.name}</span>
+                <p className="text-[0.825rem] text-text-muted">{p.desc}</p>
               </div>
-              <div className={styles.planPrice}>
-                <span className={styles.priceAmount}>{p.price}</span>
-                <span className={styles.pricePeriod}>{p.period}</span>
+              <div className="flex items-baseline gap-1.5 pb-4 border-b border-border">
+                <span className="text-[2.2rem] font-extrabold text-white">{p.price}</span>
+                <span className="text-[0.875rem] text-text-muted">{p.period}</span>
               </div>
-              <ul className={styles.planFeatures}>
+              <ul className="list-none flex flex-col gap-3 flex-1">
                 {p.features.map((f) => (
-                  <li key={f} className={styles.planFeature}>
-                    <Check size={15} className={styles.checkIcon} /><span>{f}</span>
+                  <li key={f} className="flex items-start gap-2.5 text-[0.875rem] text-text-sub">
+                    <Check size={15} className="text-accent flex-shrink-0 mt-0.5" /><span>{f}</span>
                   </li>
                 ))}
               </ul>
-              <Link href={p.href} className={p.highlighted ? "btn-primary" : "btn-secondary"} style={{ width: "100%", justifyContent: "center" }}>
+              <Link href={p.href} className={p.highlighted ? "btn-primary w-full" : "btn-secondary w-full"}>
                 {p.cta}
               </Link>
             </div>
@@ -208,20 +209,20 @@ function FAQSection() {
     { q: "Was ist 8D Spatial Sound?", a: "Eine Technik für dreidimensionales Klangerlebnis, das dich mit Kopfhörern vollständig umhüllt." },
   ];
   return (
-    <section className={styles.faq} id="faq">
+    <section className="py-[100px]" id="faq">
       <div className="container">
-        <div className={styles.sectionHeader}>
+        <div className="text-center mb-14 flex flex-col items-center gap-4">
           <span className="badge">FAQ</span>
-          <h2 className={styles.sectionTitle}>Häufige Fragen</h2>
+          <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-extrabold tracking-tight text-white">Häufige Fragen</h2>
         </div>
-        <div className={styles.faqList}>
+        <div className="flex flex-col gap-3 max-w-[760px] mx-auto">
           {faqs.map((item, i) => (
-            <details key={i} className={`${styles.faqItem} glass-card`}>
-              <summary className={styles.faqQuestion}>
+            <details key={i} className="glass-card p-0 overflow-hidden group">
+              <summary className="flex items-center justify-between py-5 px-6 cursor-pointer text-[0.95rem] font-semibold text-white list-none gap-4 select-none">
                 <span>{item.q}</span>
-                <ChevronDown size={18} className={styles.faqChevron} />
+                <ChevronDown size={18} className="flex-shrink-0 text-text-muted transition-transform duration-300 group-open:rotate-180" />
               </summary>
-              <p className={styles.faqAnswer}>{item.a}</p>
+              <p className="px-6 pb-5 text-[0.9rem] leading-[1.7] text-text-muted border-t border-border pt-4 mt-0">{item.a}</p>
             </details>
           ))}
         </div>
@@ -232,10 +233,11 @@ function FAQSection() {
 
 function CTABanner() {
   return (
-    <section className={styles.ctaBanner}>
-      <div className="container" style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
-        <h2 className={styles.ctaTitle}>Bereit für deine erste Meditation?</h2>
-        <p className={styles.ctaSub}>Kostenlos starten. Keine Kreditkarte erforderlich.</p>
+    <section className="py-[100px] text-center bg-[url('/banner-bg.svg')] bg-cover bg-center border-t border-white/5 relative">
+      <div className="absolute inset-0 bg-[#080c14]/40" />
+      <div className="container relative z-10 flex flex-col items-center">
+        <h2 className="text-[clamp(1.8rem,3vw,2.4rem)] font-extrabold text-white mb-4">Bereit für deine erste Meditation?</h2>
+        <p className="text-[1rem] text-text-muted mb-8">Kostenlos starten. Keine Kreditkarte erforderlich.</p>
         <Link href="/meditation/neue-meditation" className="btn-primary"><Sparkles size={16} />Jetzt kostenlos starten</Link>
       </div>
     </section>
@@ -258,3 +260,4 @@ export default function HomePage() {
     </>
   );
 }
+

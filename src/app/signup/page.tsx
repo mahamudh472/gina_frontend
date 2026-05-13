@@ -21,12 +21,7 @@ export default function SignupPage() {
   return (
     <main className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-8 relative overflow-hidden bg-[#020408]">
       {/* Cosmic Background */}
-      <div 
-        className="fixed inset-0 z-0 bg-no-repeat bg-cover bg-center"
-        style={{ 
-          backgroundImage: "url('/banner-bg2.svg')",
-        }}
-      >
+      <div className="fixed inset-0 z-0 bg-no-repeat bg-cover bg-center bg-[url('/banner-bg2.svg')]">
         <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
       </div>
 
@@ -38,8 +33,8 @@ export default function SignupPage() {
 
         {/* Heading */}
         <div className="text-center mb-2">
-          <h1 className="text-5xl font-medium text-white mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
-            Create your <span className="text-[#f2ca50]">Account</span>
+          <h1 className="text-5xl font-medium text-white mb-3 font-serif">
+            Create your <span className="text-accent">Account</span>
           </h1>
           <p className="text-white/70 text-base">
             Begin your cosmic meditation journey
@@ -47,27 +42,19 @@ export default function SignupPage() {
         </div>
 
         {/* Form Card */}
-        <div 
-          className="w-full rounded-[2rem] p-10 shadow-2xl relative overflow-hidden"
-          style={{
-            background: "rgba(15, 23, 42, 0.4)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-          }}
-        >
+        <div className="w-full rounded-[2rem] p-10 shadow-2xl relative overflow-hidden bg-slate-900/40 border border-white/10 backdrop-blur-3xl">
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
             {/* Name */}
             <div className="flex flex-col gap-2 ">
               <label className="text-sm text-white/70 ml-1">Full Name</label>
               <div className="relative group">
-                <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-[#f2ca50] transition-colors" />
+                <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-accent transition-colors" />
                 <input
                   type="text"
-                  placeholder="Fahamid Hossain Ovi"
+                  placeholder="Enter your name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-[#f2ca50]/50 transition-all placeholder:text-white/20"
+                  className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20"
                 />
               </div>
             </div>
@@ -76,13 +63,13 @@ export default function SignupPage() {
             <div className="flex flex-col gap-2">
               <label className="text-sm text-white/70 ml-1">Email Address</label>
               <div className="relative group">
-                <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-[#f2ca50] transition-colors" />
+                <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-accent transition-colors" />
                 <input
                   type="email"
-                  placeholder="fahamidhossainovi@gmail.com"
+                  placeholder="Enter your email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-[#f2ca50]/50 transition-all placeholder:text-white/20"
+                  className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20"
                 />
               </div>
             </div>
@@ -91,13 +78,13 @@ export default function SignupPage() {
             <div className="flex flex-col gap-2">
               <label className="text-sm text-white/70 ml-1">Password</label>
               <div className="relative group">
-                <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-[#f2ca50] transition-colors" />
+                <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-accent transition-colors" />
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="f@hamid12#3D"
+                  placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full py-3.5 pl-12 pr-12 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-[#f2ca50]/50 transition-all placeholder:text-white/20"
+                  className="w-full py-3.5 pl-12 pr-12 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20"
                 />
                 <button
                   type="button"
@@ -114,17 +101,11 @@ export default function SignupPage() {
               className="flex items-center gap-3 cursor-pointer select-none mt-1 group" 
               onClick={() => setAgreed(!agreed)}
             >
-              <div
-                className="w-5 h-5 rounded flex-shrink-0 flex items-center justify-center transition-all"
-                style={{
-                  background: agreed ? "#f2ca50" : "rgba(255, 255, 255, 0.1)",
-                  border: agreed ? "1px solid #f2ca50" : "1px solid rgba(255, 255, 255, 0.2)",
-                }}
-              >
+              <div className={`w-5 h-5 rounded flex-shrink-0 flex items-center justify-center transition-all border ${agreed ? "bg-accent border-accent" : "bg-white/10 border-white/20"}`}>
                 {agreed && <Check size={14} color="#0b0f17" strokeWidth={3} />}
               </div>
               <p className="text-sm text-white/70">
-                I agree to the <span className="text-[#f2ca50] hover:underline transition-all">Terms of Service</span> and <span className="text-[#f2ca50] hover:underline transition-all">Privacy Policy</span>
+                I agree to the <span className="text-accent hover:underline transition-all">Terms of Service</span> and <span className="text-accent hover:underline transition-all">Privacy Policy</span>
               </p>
             </div>
 
@@ -132,11 +113,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={!isFormValid}
-              className="mt-2 w-full py-4 rounded-xl font-bold text-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                background: "#f2ca50",
-                color: "#0b0f17",
-              }}
+              className="mt-2 w-full py-4 rounded-xl font-bold text-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-accent text-[#0b0f17]"
             >
               Create Account
             </button>
@@ -146,7 +123,7 @@ export default function SignupPage() {
         {/* Footer Link */}
         <p className="text-white/70 text-base">
           Already have an account?{" "}
-          <Link href="/login" className="text-[#f2ca50] font-bold hover:underline transition-all ml-1">
+          <Link href="/login" className="text-accent font-bold hover:underline transition-all ml-1">
             Log in
           </Link>
         </p>
@@ -154,3 +131,4 @@ export default function SignupPage() {
     </main>
   );
 }
+

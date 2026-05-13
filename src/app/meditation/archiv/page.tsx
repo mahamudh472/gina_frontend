@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Search, Play, Clock, Calendar, Bookmark } from "lucide-react";
-import styles from "./page.module.css";
 
 const meditations = [
   { 
@@ -66,30 +65,30 @@ export default function ArchivPage() {
   const [activeFilter, setActiveFilter] = useState("Alle");
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Meditationsarchiv</h1>
-        <p className={styles.sub}>
+    <div className="px-5 py-12 md:px-15 max-w-[1200px] w-full flex flex-col gap-8 mx-auto">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-[2.2rem] font-extrabold text-white tracking-tight">Meditationsarchiv</h1>
+        <p className="text-[1rem] text-white/70">
           {meditations.length} Sitzungen · {meditations.filter(m => m.bookmarked).length} markiert
         </p>
       </div>
 
-      <div className={styles.searchSection}>
-        <div className={styles.searchWrap}>
-          <Search size={20} className={styles.searchIcon} />
+      <div className="flex flex-col gap-5">
+        <div className="relative w-full">
+          <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
           <input 
-            className={styles.searchInput} 
+            className="w-full h-14 pl-13 pr-5 bg-[#23384b]/55 border border-white/15 rounded-2xl text-white text-[1rem] outline-none backdrop-blur-3xl transition-all duration-200 focus:border-accent/50 focus:bg-[#23384b]/65" 
             type="text" 
             placeholder="Suchen nach Titeln, Inhalten oder Themen..." 
           />
         </div>
         
-        <div className={styles.filters}>
+        <div className="flex gap-3">
           {["Alle", "Gespeichert"].map((f) => (
             <button 
               key={f} 
               onClick={() => setActiveFilter(f)}
-              className={`${styles.filterBtn} ${activeFilter === f ? styles.filterBtnActive : ""}`}
+              className={`px-6 py-2.5 rounded-full text-[0.95rem] font-medium cursor-pointer transition-all duration-200 border border-white/10 bg-transparent text-white/75 ${activeFilter === f ? "!bg-accent !text-[#0b0f17] !border-accent" : ""}`}
             >
               {f}
             </button>
@@ -97,41 +96,41 @@ export default function ArchivPage() {
         </div>
       </div>
 
-      <div className={styles.grid}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {meditations.map((m, i) => (
-          <div key={i} className={styles.card}>
+          <div key={i} className="relative bg-[#23384b]/45 border border-white/10 rounded-[32px] p-8 flex flex-col gap-6 backdrop-blur-3xl transition-all duration-300 hover:bg-[#23384b]/55 hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_20_40_rgba(0,0,0,0.3)] group">
             <Bookmark 
               size={20} 
-              className={styles.bookmarkBtn} 
+              className="absolute top-8 right-8 cursor-pointer transition-all duration-200 hover:scale-110" 
               fill={m.bookmarked ? "currentColor" : "none"} 
               style={{ color: m.bookmarked ? "#f2ca50" : "rgba(255, 255, 255, 0.4)" }}
             />
             
-            <div className={styles.cardHeader}>
-              <div className={styles.dotCircle}>
-                <div className={styles.statusDot} style={{ background: m.color }} />
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                <div className="w-3 h-3 rounded-full" style={{ background: m.color, boxShadow: `0 0 10px ${m.color}` }} />
               </div>
-              <h3 className={styles.cardTitle}>{m.title}</h3>
+              <h3 className="text-[1.5rem] font-bold text-white tracking-tight">{m.title}</h3>
             </div>
 
-            <div className={styles.cardTags}>
-              <span className={styles.tag}>{m.category}</span>
+            <div className="flex flex-wrap gap-3">
+              <span className="px-4 py-1.5 rounded-full text-[0.9rem] font-medium bg-accent/10 text-accent border border-accent/20">{m.category}</span>
             </div>
 
-            <div className={styles.cardMeta}>
-              <div className={styles.metaItem}>
+            <div className="flex items-center gap-5 text-white/50 text-[0.95rem]">
+              <div className="flex items-center gap-2">
                 <Calendar size={14} />
                 <span>{m.date}</span>
               </div>
-              <div className={styles.metaItem}>
+              <div className="flex items-center gap-2">
                 <Clock size={14} />
                 <span>{m.duration}</span>
               </div>
-              <div className={styles.metaSpacer} />
-              <span className={styles.metaVoice}>{m.voice}</span>
+              <div className="flex-1" />
+              <span className="text-white/70 font-medium">{m.voice}</span>
             </div>
 
-            <Link href="/meditation/meditation-structure/audioplayer" className={styles.playBtn}>
+            <Link href="/meditation/meditation-structure/audioplayer" className="w-full h-[60px] flex items-center justify-center gap-3 bg-accent/5 border border-accent/30 rounded-[20px] text-accent text-[1.15rem] font-semibold transition-all duration-200 group-hover:bg-accent group-hover:text-[#0b0f17] group-hover:border-accent">
               <Play size={18} fill="currentColor" />
               Nochmals abspielen
             </Link>
@@ -141,3 +140,4 @@ export default function ArchivPage() {
     </div>
   );
 }
+
