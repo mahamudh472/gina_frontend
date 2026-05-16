@@ -1,163 +1,254 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { Play, Pause, SkipBack, SkipForward, Volume2, ArrowLeft, Headphones, Waves } from "lucide-react";
-
-const segments = [
-  { label: "Einleitung", duration: 180 },
-  { label: "Atemübung", duration: 240 },
-  { label: "Körper-Scan", duration: 360 },
-  { label: "Visualisierung", duration: 480 },
-  { label: "Entspannung", duration: 300 },
-  { label: "Erwachen", duration: 180 },
-];
-
-const totalDuration = segments.reduce((a, s) => a + s.duration, 0);
-
-function formatTime(sec: number) {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${m}:${String(s).padStart(2, "0")}`;
-}
+import React, { useState, useEffect } from "react";
+import { 
+  Play, 
+  Pause, 
+  SkipBack, 
+  SkipForward, 
+  Heart, 
+  Repeat, 
+  Volume2, 
+  Music2, 
+  Wind,
+  Mic2
+} from "lucide-react";
 
 export default function AudioPlayerPage() {
-  const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0); // seconds
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(80);
+  const [musicLevel, setMusicLevel] = useState(50);
+  const [natureLevel, setNatureLevel] = useState(75);
+  const [isLiked, setIsLiked] = useState(false);
 
-  const currentSegIdx = segments.findIndex((_, i) => {
-    const start = segments.slice(0, i).reduce((a, s) => a + s.duration, 0);
-    const end = start + segments[i].duration;
-    return progress >= start && progress < end;
-  });
+  // Mock duration
+  const totalDuration = 1200; // 20:00 minutes
 
-  const progressPct = (progress / totalDuration) * 100;
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isPlaying) {
+      interval = setInterval(() => {
+        setProgress((prev) => (prev < totalDuration ? prev + 1 : prev));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying]);
 
-  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pct = (e.clientX - rect.left) / rect.width;
-    setProgress(Math.round(pct * totalDuration));
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const formatRemaining = (seconds: number) => {
+    const remaining = totalDuration - seconds;
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    return `-${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (
-    <div className="p-10 md:p-12 max-w-[680px] w-full flex flex-col gap-7">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link href="/meditation/meditation-structure" className="flex items-center gap-1.5 px-4 py-2 bg-white/7 border border-border rounded-pill text-text-muted text-[0.85rem] no-underline transition-all duration-200 hover:text-white hover:bg-white/12 flex-shrink-0">
-          <ArrowLeft size={16} /> Zurück
-        </Link>
-        <h1 className="text-[1.3rem] font-extrabold text-white flex-1">Tiefe Entspannung</h1>
-        <div className="w-[100px] hidden md:block" />
-      </div>
+    <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8 gap-5 max-w-4xl mx-auto w-full">
+      
+      {/* Top Card: Player Info & Visualization */}
+      <div className="glass-card w-full p-6 md:p-10 flex flex-col items-center relative overflow-hidden rounded-[2rem]">
+        {/* Favorite Button */}
+        <button 
+          onClick={() => setIsLiked(!isLiked)}
+          className={`absolute top-6 right-6 transition-all duration-300 hover:scale-110 ${isLiked ? "text-accent fill-accent" : "text-white/40 hover:text-white"}`}
+        >
+          <Heart size={24} />
+        </button>
 
-      {/* Visualizer */}
-      <div className="flex flex-col items-center gap-6">
-        <div className={`w-[120px] h-[120px] rounded-full bg-[radial-gradient(circle,rgba(242,202,80,0.18)_0%,rgba(13,19,32,0)_70%)] border-2 border-accent/25 flex items-center justify-center transition-all duration-400 ${playing ? "animate-pulse border-accent/50 bg-[radial-gradient(circle,rgba(242,202,80,0.25)_0%,rgba(13,19,32,0)_70%)]" : ""}`}>
-          <div className="w-20 h-20 rounded-full bg-accent/8 flex items-center justify-center">
-            <Waves size={36} className="text-accent" />
-          </div>
-        </div>
-        <div className="flex items-center gap-[3px] h-12 w-full md:flex hidden">
-          {Array.from({ length: 48 }, (_, i) => (
-            <div
+        {/* Orb Visualizer */}
+        <div className="relative w-64 h-64 flex items-center justify-center mb-6 mt-2">
+          {/* Animated Ripples */}
+          {[1, 2, 3, 4].map((i) => (
+            <div 
               key={i}
-              className={`flex-1 bg-accent rounded-[2px] min-h-[4px] transition-all duration-300 ${playing ? "animate-[waveAnim_1.2s_ease-in-out_infinite_alternate]" : ""}`}
-              style={{
-                height: `${20 + Math.sin(i * 0.5) * 18 + Math.random() * 12}px`,
-                animationDelay: `${i * 0.04}s`,
-                opacity: (i / 48) < progressPct / 100 ? 1 : 0.25,
+              className={`absolute border border-accent/20 rounded-full transition-all duration-[2000ms] ease-out pointer-events-none ${
+                isPlaying ? "animate-[ripple_4s_infinite]" : "opacity-20"
+              }`}
+              style={{ 
+                width: `${i * 25}%`, 
+                height: `${i * 25}%`,
+                animationDelay: `${i * 1000}ms`,
+                opacity: 0.3 - (i * 0.05)
               }}
             />
           ))}
+          
+          {/* Main Glowing Orb */}
+          <div className="relative w-24 h-24 flex items-center justify-center">
+            {/* Inner Glow */}
+            <div className={`absolute inset-0 bg-accent rounded-full blur-2xl opacity-40 transition-all duration-1000 ${isPlaying ? "scale-150" : "scale-100"}`} />
+            {/* Orb Body */}
+            <div className="relative w-16 h-16 bg-[radial-gradient(circle_at_30%_30%,#fff5d6_0%,#f2ca50_40%,#d4a930_100%)] rounded-full shadow-[0_0_50px_rgba(242,202,80,0.7),inset_-3px_-3px_10px_rgba(0,0,0,0.3)]">
+              <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-white/60 rounded-full blur-[1.5px]" />
+            </div>
+          </div>
+          
+          {/* Concentric Ellipses (as seen in image) */}
+          <div className="absolute w-[200px] h-[100px] border border-accent/15 rounded-[100%] rotate-0 opacity-40" />
+          <div className="absolute w-[250px] h-[125px] border border-accent/10 rounded-[100%] rotate-0 opacity-20" />
+        </div>
+
+        {/* Text Information */}
+        <div className="text-center flex flex-col items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-serif text-white tracking-wide">
+            Meditation für inneren Frieden
+          </h1>
+          <p className="text-text-muted text-base font-medium">
+            Geführt von Serena - 20:00
+          </p>
+          
+          <div className="mt-1 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+            <span className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">Begrüßung</span>
+          </div>
+        </div>
+
+        {/* Main Progress Bar */}
+        <div className="w-full mt-8 flex flex-col gap-2.5">
+          <div className="relative h-1.5 w-full bg-white/10 rounded-full overflow-hidden group cursor-pointer">
+            <div 
+              className="absolute h-full bg-accent transition-all duration-300 shadow-[0_0_10px_rgba(242,202,80,0.5)]" 
+              style={{ width: `${(progress / totalDuration) * 100}%` }}
+            />
+            {/* Markers */}
+            {[0.2, 0.4, 0.6, 0.8].map((m) => (
+              <div key={m} className="absolute h-full w-[2px] bg-white/20" style={{ left: `${m * 100}%` }} />
+            ))}
+          </div>
+          <div className="flex justify-between text-white/50 text-xs font-medium tabular-nums">
+            <span>{formatTime(progress)}</span>
+            <span>{formatRemaining(progress)}</span>
+          </div>
         </div>
       </div>
 
-      {/* Info */}
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-1">
-          <span className="text-[1.15rem] font-bold text-white">Tiefe Entspannung</span>
-          <span className="text-[0.825rem] text-text-muted">Alexander · Ozeanwellen</span>
+      {/* Bottom Card: Controls & Mixer */}
+      <div className="glass-card w-full p-6 md:p-8 flex flex-col gap-8 rounded-[2rem]">
+        
+        {/* Playback Controls */}
+        <div className="flex items-center justify-center gap-6 md:gap-10">
+          <button className="text-white/40 hover:text-white transition-colors">
+            <SkipBack size={24} />
+          </button>
+          
+          <button 
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="w-16 h-16 rounded-full bg-accent text-bg-deep flex items-center justify-center transition-all duration-300 shadow-[0_0_20px_rgba(242,202,80,0.4)] hover:scale-105 hover:bg-accent-dark group"
+          >
+            {isPlaying ? (
+              <Pause size={28} fill="currentColor" />
+            ) : (
+              <Play size={28} fill="currentColor" className="ml-1" />
+            )}
+          </button>
+          
+          <button className="text-white/40 hover:text-white transition-colors">
+            <SkipForward size={24} />
+          </button>
         </div>
-        <span className="badge text-[0.75rem]"><Headphones size={12} />8D Audio</span>
-      </div>
 
-      {/* Progress */}
-      <div className="flex flex-col gap-2">
-        <div className="relative h-1.25 bg-white/10 rounded-pill cursor-pointer overflow-visible" onClick={handleSeek}>
-          <div className="absolute left-0 top-0 h-full bg-gradient-to-r from-accent to-[#fad84a] rounded-pill transition-all duration-200" style={{ width: `${progressPct}%` }} />
-          <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-accent shadow-[0_0_8px_rgba(242,202,80,0.5)] transition-all duration-200" style={{ left: `${progressPct}%` }} />
-          {/* Segment markers */}
-          {segments.slice(0, -1).map((_, i) => {
-            const pos = (segments.slice(0, i + 1).reduce((a, s) => a + s.duration, 0) / totalDuration) * 100;
-            return <div key={i} className="absolute top-[-2px] w-[2px] h-[9px] bg-white/25 rounded-[1px] -translate-x-1/2" style={{ left: `${pos}%` }} />;
-          })}
+        {/* Feature Sections */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FeatureToggle 
+            title="Affirmationen" 
+            description="Bestätigungsabschnitt wiederholen" 
+            icon={<Mic2 size={16} />} 
+          />
+          <FeatureToggle 
+            title="Suggestionen" 
+            description="Vorschlagsabschnitt wiederholen" 
+            icon={<Repeat size={16} />} 
+          />
+          <FeatureToggle 
+            title="Visualisierung" 
+            description="Vorschlagsabschnitt wiederholen" 
+            icon={<Repeat size={16} />} 
+          />
         </div>
-        <div className="flex justify-between">
-          <span className="text-[0.78rem] text-text-muted tabular-nums">{formatTime(progress)}</span>
-          <span className="text-[0.78rem] text-text-muted tabular-nums">{formatTime(totalDuration)}</span>
-        </div>
-      </div>
 
-      {/* Segment indicator */}
-      {currentSegIdx >= 0 && (
-        <div className="text-center text-[0.85rem]">
-          <span className="text-text-muted">Jetzt: </span>
-          <span className="text-accent font-semibold">{segments[currentSegIdx].label}</span>
-        </div>
-      )}
-
-      {/* Controls */}
-      <div className="flex items-center justify-center gap-7">
-        <button className="w-12 h-12 rounded-full bg-white/7 border border-border text-text-sub flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-white/14 hover:text-white" onClick={() => setProgress(Math.max(0, progress - 15))} aria-label="15s zurück">
-          <SkipBack size={22} />
-        </button>
-        <button
-          className="w-[68px] h-[68px] rounded-full bg-accent text-[#0b0f17] flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_0_24px_rgba(242,202,80,0.35)] hover:bg-[#fad84a] hover:shadow-[0_0_36px_rgba(242,202,80,0.55)] hover:scale-105"
-          onClick={() => setPlaying((p) => !p)}
-          aria-label={playing ? "Pause" : "Abspielen"}
-        >
-          {playing ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" />}
-        </button>
-        <button className="w-12 h-12 rounded-full bg-white/7 border border-border text-text-sub flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-white/14 hover:text-white" onClick={() => setProgress(Math.min(totalDuration, progress + 15))} aria-label="15s vor">
-          <SkipForward size={22} />
-        </button>
-      </div>
-
-      {/* Volume */}
-      <div className="flex items-center gap-3 justify-center">
-        <Volume2 size={16} className="text-text-muted flex-shrink-0" />
-        <div className="w-[180px]">
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={volume}
-            onChange={(e) => setVolume(Number(e.target.value))}
-            className="appearance-none w-full h-1 bg-white/15 rounded-[2px] outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:cursor-pointer"
-            aria-label="Lautstärke"
+        {/* Audio Mixer */}
+        <div className="flex flex-col gap-5 pt-3 border-t border-white/5">
+          <MixerSlider 
+            icon={<Volume2 size={18} />} 
+            value={volume} 
+            onChange={setVolume} 
+            label="Hauptstimme"
+          />
+          <MixerSlider 
+            icon={<Music2 size={18} />} 
+            value={musicLevel} 
+            onChange={setMusicLevel} 
+            label="Hintergrundmusik"
+          />
+          <MixerSlider 
+            icon={<Wind size={18} />} 
+            value={natureLevel} 
+            onChange={setNatureLevel} 
+            label="Naturgeräusche"
           />
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Segment list */}
-      <div className="flex flex-col gap-1.5 border-t border-border pt-5">
-        {segments.map((seg, i) => {
-          const start = segments.slice(0, i).reduce((a, s) => a + s.duration, 0);
-          const active = i === currentSegIdx;
-          return (
-            <button
-              key={i}
-              className={`flex items-center gap-3.5 px-4 py-2.5 rounded-md bg-transparent border border-transparent cursor-pointer transition-all duration-200 text-left hover:bg-white/5 ${active ? "!bg-accent/8 !border-accent/20" : ""}`}
-              onClick={() => setProgress(start)}
-            >
-              <span className="text-[0.72rem] font-bold text-text-muted w-5 flex-shrink-0">{String(i + 1).padStart(2, "0")}</span>
-              <span className={`flex-1 text-[0.875rem] font-medium text-text-sub ${active ? "text-accent" : ""}`}>{seg.label}</span>
-              <span className="text-[0.78rem] text-text-muted">{formatTime(seg.duration)}</span>
-            </button>
-          );
-        })}
+function FeatureToggle({ title, description, icon }: { title: string, description: string, icon: React.ReactNode }) {
+  const [isLooping, setIsLooping] = useState(false);
+  
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <span className="text-white/80 font-bold text-sm tracking-wide">{title}</span>
+        <button 
+          onClick={() => setIsLooping(!isLooping)}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold transition-all duration-300 ${
+            isLooping 
+            ? "bg-accent/20 border-accent text-accent shadow-[0_0_10px_rgba(242,202,80,0.2)]" 
+            : "bg-white/5 border-white/10 text-white/40 hover:border-white/20 hover:text-white/60"
+          }`}
+        >
+          <Repeat size={10} />
+          LOOP
+        </button>
       </div>
+      <p className="text-white/30 text-[11px] leading-tight">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function MixerSlider({ icon, value, onChange, label }: { icon: React.ReactNode, value: number, onChange: (v: number) => void, label: string }) {
+  return (
+    <div className="flex items-center gap-4 group">
+      <div className="text-white/40 group-hover:text-accent transition-colors duration-300">
+        {React.cloneElement(icon as React.ReactElement, { size: 18 })}
+      </div>
+      <div className="flex-1 relative h-1 flex items-center">
+        <div className="absolute w-full h-full bg-white/10 rounded-full" />
+        <div 
+          className="absolute h-full bg-accent rounded-full shadow-[0_0_8px_rgba(242,202,80,0.3)] transition-all duration-100" 
+          style={{ width: `${value}%` }} 
+        />
+        <input 
+          type="range" 
+          min="0" 
+          max="100" 
+          value={value} 
+          onChange={(e) => onChange(parseInt(e.target.value))}
+          className="absolute w-full h-full opacity-0 cursor-pointer z-10"
+          aria-label={label}
+        />
+      </div>
+      <span className="text-white/40 text-[10px] font-bold tabular-nums w-7 text-right group-hover:text-white transition-colors">
+        {value}%
+      </span>
     </div>
   );
 }

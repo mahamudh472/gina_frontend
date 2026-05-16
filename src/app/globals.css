@@ -74,6 +74,11 @@
     50% { transform: translateY(-8px); }
   }
 
+  @keyframes ripple {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    100% { transform: scale(2.4); opacity: 0; }
+  }
+
   @keyframes waveAnim {
     0%   { transform: scaleY(0.4); }
     100% { transform: scaleY(1); }
@@ -147,6 +152,14 @@
 
   .badge {
     @apply inline-flex items-center gap-1 px-3 py-1 bg-accent/12 border border-accent/30 rounded-pill text-accent text-[0.75rem] font-semibold;
+  }
+
+  .pro-card {
+    @apply !bg-[#51572f]/72 !border-[#9a8a45] shadow-[0_10px_40px_rgba(0,0,0,0.3)];
+  }
+
+  .premium-card {
+    @apply border-[#a884f3]/40 bg-[#a884f3]/8 shadow-[0_0_24px_rgba(168,132,243,0.15)];
   }
 }
 

@@ -13,7 +13,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.svg" alt="VISULARA" className="h-8 w-auto block" />
+          <img src="/logo.svg" alt="VISULARA" className="h-12 w-auto block" />
         </Link>
 
         {/* Desktop Links */}

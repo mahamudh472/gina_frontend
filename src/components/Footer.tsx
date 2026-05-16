@@ -10,7 +10,7 @@ export default function Footer() {
           <div className="flex flex-col gap-4">
             <Link href="/" className="flex items-center gap-2.5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.svg" alt="VISULARA" style={{ height: "28px", width: "auto" }} />
+              <img src="/logo.svg" alt="VISULARA" className="h-10 w-auto" />
             </Link>
             <p className="text-[0.875rem] leading-[1.7] text-text-muted">
               KI-Meditationen, die dich wirklich kennen.

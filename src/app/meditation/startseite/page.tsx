@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function StartseitePage() {
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden">
-      <div className="relative z-10 flex flex-col items-center text-center max-w-[900px] w-full px-5 py-20 gap-10 animate-in fade-in zoom-in-95 duration-1000">
+      <div className="relative z-10 flex flex-col items-center text-center max-w-[1200px] w-full px-6 py-20 gap-10 animate-in fade-in zoom-in-95 duration-1000">
 
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-accent/30 bg-accent/10 text-accent text-[0.7rem] font-bold tracking-[0.15em] uppercase">
@@ -11,14 +11,13 @@ export default function StartseitePage() {
         </div>
 
         {/* Heading - Large and Serif */}
-        <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-serif font-extrabold leading-[1.1] text-white max-w-[800px]">
-          Entfalte dein Potenzial <br />
-          <span className="text-white">mit deiner individuellen <br /> Meditation</span>
+        <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-serif font-extrabold leading-[1.1] text-white max-w-[1000px]">
+          Entfalte dein Potenzial mit deiner individuellen Meditation
         </h1>
 
         {/* Description */}
-        <p className="text-[1.1rem] leading-[1.7] text-white/80 max-w-[650px]">
-          Erstelle deine Meditation in vier Schritten. Persönlich, eindringlich und <br className="hidden md:block" />
+        <p className="text-[1.1rem] leading-[1.7] text-white/80 max-w-[800px]">
+          Erstelle deine Meditation in vier Schritten. Persönlich, eindringlich und
           genau auf deine Seelenreise zugeschnitten.
         </p>
 

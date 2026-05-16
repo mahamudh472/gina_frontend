@@ -8,7 +8,7 @@ export default function WelcomePage() {
       <div className="fixed inset-0 bg-[url('/banner-step1-new.svg')] bg-cover bg-center bg-no-repeat z-[-1] after:content-[''] after:absolute after:inset-0 after:bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(8,12,20,0.4)_100%)]" />
       
       <div className="mb-12 flex items-center gap-3 animate-fade-in">
-        <img src="/logo.svg" alt="VISULARA" style={{ height: '40px' }} />
+        <img src="/logo.svg" alt="VISULARA" className="h-15" />
       </div>
 
       <div className="text-center mb-10 animate-fade-in-up">

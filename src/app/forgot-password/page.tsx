@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
       <div className="relative z-10 w-full max-w-[540px] flex flex-col items-center gap-6">
         {/* Logo */}
         <div className="mb-2">
-          <img src="/logo.svg" alt="VISULARA" className="h-10 w-auto" />
+          <img src="/logo.svg" alt="VISULARA" className="h-15 w-auto" />
         </div>
 
         {/* Heading */}

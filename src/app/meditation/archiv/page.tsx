@@ -2,140 +2,179 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, Play, Clock, Calendar, Bookmark } from "lucide-react";
+import { Play, Heart } from "lucide-react";
 
 const meditations = [
   { 
-    title: "Fokus & Flow-Zustand", 
-    category: "Fokus & Klarheit", 
-    duration: "18:00", 
-    date: "11. Apr. 2026", 
-    voice: "Serena",
-    color: "#7eb8c9",
-    bookmarked: true
+    id: 1,
+    title: "Innere Ruhe Meditation", 
+    date: "15. April 2026", 
+    duration: "20:00 min", 
+    progress: 75,
+    liked: false,
+    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=400&h=400&auto=format&fit=crop"
   },
   { 
-    title: "Herzöffnung der Dankbarkeit", 
-    category: "Dankbarkeit", 
-    duration: "22:00", 
-    date: "9. Apr. 2026", 
-    voice: "Serena",
-    color: "#7ec98a",
-    bookmarked: false
+    id: 2,
+    title: "Inner Peace", 
+    date: "15. April 2026", 
+    duration: "20:00 min", 
+    progress: 65,
+    liked: true,
+    image: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=400&h=400&auto=format&fit=crop"
   },
   { 
-    title: "Stille im Abendlicht", 
-    category: "Tiefe Ruhe", 
-    duration: "21:10", 
-    date: "7. Apr. 2026", 
-    voice: "Maya",
-    color: "#f2ca50",
-    bookmarked: true
+    id: 3,
+    title: "Inner Peace", 
+    date: "15. April 2026", 
+    duration: "20:00 min", 
+    progress: 70,
+    liked: false,
+    image: "https://images.unsplash.com/photo-1499209974431-9dac3adaf471?q=80&w=400&h=400&auto=format&fit=crop"
   },
   { 
-    title: "Morgenklarheit", 
-    category: "Klarheit", 
-    duration: "06:45", 
-    date: "5. Apr. 2026", 
-    voice: "Noah",
-    color: "#7eb8c9",
-    bookmarked: false
-  },
-  { 
-    title: "Selbstmitgefühl aktivieren", 
-    category: "Selbstliebe", 
-    duration: "19:20", 
-    date: "3. Apr. 2026", 
-    voice: "Lea",
-    color: "#c9a0dc",
-    bookmarked: false
-  },
-  { 
-    title: "Sonnenatem im Herzen", 
-    category: "Herzensraum", 
-    duration: "08:30", 
-    date: "1. Apr. 2026", 
-    voice: "Jonas",
-    color: "#7ec98a",
-    bookmarked: true
+    id: 4,
+    title: "Inner Peace", 
+    date: "15. April 2026", 
+    duration: "20:00 min", 
+    progress: 68,
+    liked: false,
+    image: "https://images.unsplash.com/photo-1515023115689-589c33041d3c?q=80&w=400&h=400&auto=format&fit=crop"
   }
 ];
 
-export default function ArchivPage() {
-  const [activeFilter, setActiveFilter] = useState("Alle");
+function CircularProgress({ percentage, weekTime, totalTime }: { percentage: number, weekTime: string, totalTime: string }) {
+  const radius = 35;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="px-5 py-12 md:px-15 max-w-[1200px] w-full flex flex-col gap-8 mx-auto">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-[2.2rem] font-extrabold text-white tracking-tight">Meditationsarchiv</h1>
-        <p className="text-[1rem] text-white/70">
-          {meditations.length} Sitzungen · {meditations.filter(m => m.bookmarked).length} markiert
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-5">
-        <div className="relative w-full">
-          <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
-          <input 
-            className="w-full h-14 pl-13 pr-5 bg-[#23384b]/55 border border-white/15 rounded-2xl text-white text-[1rem] outline-none backdrop-blur-3xl transition-all duration-200 focus:border-accent/50 focus:bg-[#23384b]/65" 
-            type="text" 
-            placeholder="Suchen nach Titeln, Inhalten oder Themen..." 
+    <div className="flex items-center gap-6">
+      <div className="relative w-24 h-24 flex items-center justify-center">
+        <svg className="w-full h-full transform -rotate-90">
+          <circle
+            cx="48"
+            cy="48"
+            r={radius}
+            stroke="rgba(255, 255, 255, 0.1)"
+            strokeWidth="7"
+            fill="transparent"
           />
+          <circle
+            cx="48"
+            cy="48"
+            r={radius}
+            stroke="#f2ca50"
+            strokeWidth="7"
+            fill="transparent"
+            strokeDasharray={circumference}
+            style={{ strokeDashoffset, transition: "stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
+            strokeLinecap="round"
+          />
+        </svg>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <div className="text-white/60 text-[0.95rem]">
+          Diese Woche meditiert: <span className="text-accent font-bold">{weekTime}</span>
+        </div>
+        <div className="text-white/60 text-[0.95rem]">
+          Gesamtzeit: <span className="text-accent font-bold">{totalTime}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ArchivPage() {
+  return (
+    <div className="px-6 py-10 md:px-20 max-w-[1400px] w-full flex flex-col gap-10 mx-auto">
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pt-4">
+        <div className="flex flex-col gap-3">
+          <h1 className="text-4xl md:text-5xl font-serif font-black text-white tracking-tight uppercase leading-tight">
+            Dein Visulara Portal
+          </h1>
+          <div className="flex items-center gap-3 text-lg">
+            <span className="text-white/60 font-medium">Status:</span>
+            <span className="text-accent font-bold">Premium Mitglied</span>
+          </div>
         </div>
         
-        <div className="flex gap-3">
-          {["Alle", "Gespeichert"].map((f) => (
-            <button 
-              key={f} 
-              onClick={() => setActiveFilter(f)}
-              className={`px-6 py-2.5 rounded-full text-[0.95rem] font-medium cursor-pointer transition-all duration-200 border border-white/10 bg-transparent text-white/75 ${activeFilter === f ? "!bg-accent !text-[#0b0f17] !border-accent" : ""}`}
-            >
-              {f}
-            </button>
-          ))}
+        <div className="lg:pr-10">
+          <CircularProgress 
+            percentage={65} 
+            weekTime="120 Min." 
+            totalTime="450 Min." 
+          />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {meditations.map((m, i) => (
-          <div key={i} className="relative bg-[#23384b]/45 border border-white/10 rounded-[32px] p-8 flex flex-col gap-6 backdrop-blur-3xl transition-all duration-300 hover:bg-[#23384b]/55 hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_20_40_rgba(0,0,0,0.3)] group">
-            <Bookmark 
-              size={20} 
-              className="absolute top-8 right-8 cursor-pointer transition-all duration-200 hover:scale-110" 
-              fill={m.bookmarked ? "currentColor" : "none"} 
-              style={{ color: m.bookmarked ? "#f2ca50" : "rgba(255, 255, 255, 0.4)" }}
-            />
-            
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-                <div className="w-3 h-3 rounded-full" style={{ background: m.color, boxShadow: `0 0 10px ${m.color}` }} />
-              </div>
-              <h3 className="text-[1.5rem] font-bold text-white tracking-tight">{m.title}</h3>
-            </div>
+      {/* List Section */}
+      <div className="flex flex-col gap-6">
+        <h2 className="text-[0.95rem] font-bold text-white/40 tracking-[0.25em] uppercase">
+          Meine Meditationen
+        </h2>
 
-            <div className="flex flex-wrap gap-3">
-              <span className="px-4 py-1.5 rounded-full text-[0.9rem] font-medium bg-accent/10 text-accent border border-accent/20">{m.category}</span>
-            </div>
-
-            <div className="flex items-center gap-5 text-white/50 text-[0.95rem]">
-              <div className="flex items-center gap-2">
-                <Calendar size={14} />
-                <span>{m.date}</span>
+        <div className="flex flex-col gap-4">
+          {meditations.map((m) => (
+            <div 
+              key={m.id} 
+              className="group relative bg-white/[0.05] border border-white/10 rounded-[2rem] p-3 flex items-center gap-6 backdrop-blur-2xl transition-all duration-500 hover:bg-white/[0.09] hover:border-white/20 hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
+            >
+              {/* Thumbnail */}
+              <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-[1.2rem] overflow-hidden shadow-2xl border border-white/10 relative">
+                <img 
+                  src={m.image} 
+                  alt={m.title} 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-115" 
+                />
+                <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500" />
               </div>
-              <div className="flex items-center gap-2">
-                <Clock size={14} />
-                <span>{m.duration}</span>
-              </div>
-              <div className="flex-1" />
-              <span className="text-white/70 font-medium">{m.voice}</span>
-            </div>
 
-            <Link href="/meditation/meditation-structure/audioplayer" className="w-full h-[60px] flex items-center justify-center gap-3 bg-accent/5 border border-accent/30 rounded-[20px] text-accent text-[1.15rem] font-semibold transition-all duration-200 group-hover:bg-accent group-hover:text-[#0b0f17] group-hover:border-accent">
-              <Play size={18} fill="currentColor" />
-              Nochmals abspielen
-            </Link>
-          </div>
-        ))}
+              {/* Content */}
+              <div className="flex-1 flex flex-col gap-4 py-1">
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                    {m.title}
+                  </h3>
+                  <p className="text-white/40 text-[0.9rem] font-medium">
+                    Erstellt am: {m.date} . Dauer: {m.duration}
+                  </p>
+                </div>
+
+                {/* Progress Bar Container */}
+                <div className="w-full max-w-[95%] flex flex-col gap-2">
+                  <div className="w-full h-[2.5px] bg-white/10 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-accent relative"
+                      style={{ width: `${m.progress}%` }}
+                    >
+                      <div className="absolute top-0 right-0 w-4 h-full bg-white/40 blur-[4px]" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-5 pr-4">
+                <Link 
+                  href="/meditation/meditation-structure/audioplayer" 
+                  className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center bg-accent rounded-full text-[#0b0f17] shadow-[0_10px_25px_rgba(242,202,80,0.35)] transition-all duration-300 hover:scale-110 hover:shadow-[0_15px_35px_rgba(242,202,80,0.5)] active:scale-95"
+                >
+                  <Play size={24} fill="currentColor" className="ml-1" />
+                </Link>
+                <button className="text-white/40 hover:text-accent transition-all duration-300 transform hover:scale-110">
+                  <Heart 
+                    size={28} 
+                    fill={m.liked ? "#f2ca50" : "none"} 
+                    className={m.liked ? "text-accent" : "text-white/60"} 
+                    strokeWidth={m.liked ? 0 : 2}
+                  />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

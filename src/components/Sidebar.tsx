@@ -19,7 +19,7 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2.5 px-5 pb-6 text-none border-b border-white/8 mb-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.svg" alt="VISULARA" className="h-7 w-auto block" />
+        <img src="/logo.svg" alt="VISULARA" className="h-10 w-auto block" />
       </Link>
 
       {/* Navigation */}
