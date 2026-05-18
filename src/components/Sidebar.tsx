@@ -30,6 +30,7 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
             <Link
               key={href}
               href={href}
+              suppressHydrationWarning
               className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-md text-[0.9rem] font-medium transition-all duration-200 ${active ? "text-accent bg-accent/8" : "text-text-muted hover:text-text-primary hover:bg-white/6"}`}
             >
               <Icon size={18} className={active ? "text-accent" : ""} />
