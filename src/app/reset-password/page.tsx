@@ -1,23 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Lock, Eye, EyeOff, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { confirmPasswordReset } = useAuth();
+
+  const email = searchParams.get("email") || "";
+  const otp = searchParams.get("otp") || "";
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!password || !confirmPassword || loading) return;
+
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      setError("Passwords do not match");
       return;
     }
-    console.log("Updating password...");
-    // Handle reset password logic here
+
+    if (!email || !otp) {
+      setError("Missing reset session. Please request a new code.");
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+
+    try {
+      await confirmPasswordReset(email, otp, password);
+      setSuccess("Password successfully reset! Redirecting to login...");
+      setTimeout(() => {
+        router.push("/login");
+      }, 2500);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Failed to reset password. The code might have expired.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,6 +80,21 @@ export default function ResetPasswordPage() {
         {/* Form Card */}
         <div className="w-full rounded-[2rem] p-10 shadow-2xl relative overflow-hidden bg-slate-900/40 border border-white/10 backdrop-blur-3xl">
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            {/* Error Message */}
+            {error && (
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm leading-relaxed text-center animate-fade-in">
+                {error}
+              </div>
+            )}
+
+            {/* Success Message */}
+            {success && (
+              <div className="p-5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-sm leading-relaxed text-center flex flex-col items-center gap-3 animate-fade-in">
+                <CheckCircle2 className="w-8 h-8 text-emerald-400 animate-bounce" />
+                <span>{success}</span>
+              </div>
+            )}
+
             <div className="flex flex-col gap-2">
               <label className="text-sm text-white/70 ml-1">New Password</label>
               <div className="relative group">
@@ -54,8 +103,9 @@ export default function ResetPasswordPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
+                  disabled={loading || !!success}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full py-3.5 pl-12 pr-12 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20"
+                  className="w-full py-3.5 pl-12 pr-12 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20 disabled:opacity-50"
                   required
                 />
                 <button
@@ -76,8 +126,9 @@ export default function ResetPasswordPage() {
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={confirmPassword}
+                  disabled={loading || !!success}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full py-3.5 pl-12 pr-12 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20"
+                  className="w-full py-3.5 pl-12 pr-12 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20 disabled:opacity-50"
                   required
                 />
                 <button
@@ -90,8 +141,19 @@ export default function ResetPasswordPage() {
               </div>
             </div>
 
-            <button type="submit" className="w-full py-4 bg-accent text-[#0b0f17] rounded-xl font-bold text-lg transition-all active:scale-[0.98]">
-              Update Password
+            <button 
+              type="submit" 
+              disabled={!password || !confirmPassword || loading || !!success}
+              className="w-full py-4 bg-accent text-[#0b0f17] rounded-xl font-bold text-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Updating Password...
+                </>
+              ) : (
+                "Update Password"
+              )}
             </button>
           </form>
         </div>
@@ -103,4 +165,13 @@ export default function ResetPasswordPage() {
     </main>
   );
 }
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#020408] flex items-center justify-center text-white">Loading...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
+  );
+}
+
 

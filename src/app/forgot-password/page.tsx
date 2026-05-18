@@ -3,17 +3,32 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft, Loader2 } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { requestPasswordReset } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Sending reset OTP to:", email);
-    // Handle forgot password logic here
-    router.push("/verify-email?type=reset");
+    if (!email || loading) return;
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      await requestPasswordReset(email);
+      router.push(`/verify-email?email=${encodeURIComponent(email)}&type=reset`);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Failed to trigger password reset. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,6 +57,13 @@ export default function ForgotPasswordPage() {
         {/* Form Card */}
         <div className="w-full rounded-[2rem] p-10 shadow-2xl relative overflow-hidden bg-slate-900/40 border border-white/10 backdrop-blur-3xl">
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            {/* Error Message */}
+            {error && (
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm leading-relaxed text-center animate-fade-in">
+                {error}
+              </div>
+            )}
+
             <div className="flex flex-col gap-2">
               <label className="text-sm text-white/70 ml-1">Email Address</label>
               <div className="relative group">
@@ -50,15 +72,27 @@ export default function ForgotPasswordPage() {
                   type="email"
                   placeholder="Enter your email"
                   value={email}
+                  disabled={loading}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20"
+                  className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20 disabled:opacity-50"
                   required
                 />
               </div>
             </div>
 
-            <button type="submit" className="w-full py-4 bg-accent text-[#0b0f17] rounded-xl font-bold text-lg transition-all active:scale-[0.98]">
-              Send Reset Code
+            <button 
+              type="submit" 
+              disabled={!email || loading}
+              className="w-full py-4 bg-accent text-[#0b0f17] rounded-xl font-bold text-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Sending Code...
+                </>
+              ) : (
+                "Send Reset Code"
+              )}
             </button>
           </form>
         </div>
@@ -70,4 +104,5 @@ export default function ForgotPasswordPage() {
     </main>
   );
 }
+
 

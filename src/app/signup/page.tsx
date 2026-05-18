@@ -3,19 +3,36 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User, Mail, Lock, Eye, EyeOff, Check } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, Check, Loader2 } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { register } = useAuth();
 
-  const isFormValid = formData.name && formData.email && formData.password && agreed;
+  const isFormValid = formData.name && formData.email && formData.password && agreed && !loading;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isFormValid) router.push("/verify-email?type=registration");
+    if (!isFormValid) return;
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      await register(formData.email, formData.password, formData.name);
+      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}&type=registration`);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "An error occurred during registration. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,6 +61,13 @@ export default function SignupPage() {
         {/* Form Card */}
         <div className="w-full rounded-[2rem] p-10 shadow-2xl relative overflow-hidden bg-slate-900/40 border border-white/10 backdrop-blur-3xl">
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+            {/* Error Message */}
+            {error && (
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm leading-relaxed animate-fade-in">
+                {error}
+              </div>
+            )}
+
             {/* Name */}
             <div className="flex flex-col gap-2 ">
               <label className="text-sm text-white/70 ml-1">Full Name</label>
@@ -53,8 +77,10 @@ export default function SignupPage() {
                   type="text"
                   placeholder="Enter your name"
                   value={formData.name}
+                  disabled={loading}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20"
+                  className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20 disabled:opacity-50"
+                  required
                 />
               </div>
             </div>
@@ -68,8 +94,10 @@ export default function SignupPage() {
                   type="email"
                   placeholder="Enter your email"
                   value={formData.email}
+                  disabled={loading}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20"
+                  className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20 disabled:opacity-50"
+                  required
                 />
               </div>
             </div>
@@ -83,8 +111,10 @@ export default function SignupPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={formData.password}
+                  disabled={loading}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full py-3.5 pl-12 pr-12 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20"
+                  className="w-full py-3.5 pl-12 pr-12 rounded-xl bg-[#1e293b]/40 border border-white/5 text-white outline-none focus:border-accent/50 transition-all placeholder:text-white/20 disabled:opacity-50"
+                  required
                 />
                 <button
                   type="button"
@@ -99,9 +129,9 @@ export default function SignupPage() {
             {/* Terms Checkbox */}
             <div 
               className="flex items-center gap-3 cursor-pointer select-none mt-1 group" 
-              onClick={() => setAgreed(!agreed)}
+              onClick={() => !loading && setAgreed(!agreed)}
             >
-              <div className={`w-5 h-5 rounded flex-shrink-0 flex items-center justify-center transition-all border ${agreed ? "bg-accent border-accent" : "bg-white/10 border-white/20"}`}>
+              <div className={`w-5 h-5 rounded flex-shrink-0 flex items-center justify-center transition-all border ${agreed ? "bg-accent border-accent" : "bg-white/10 border-white/20"} ${loading ? "opacity-50 cursor-not-allowed" : ""}`}>
                 {agreed && <Check size={14} color="#0b0f17" strokeWidth={3} />}
               </div>
               <p className="text-sm text-white/70">
@@ -113,9 +143,16 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={!isFormValid}
-              className="mt-2 w-full py-4 rounded-xl font-bold text-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-accent text-[#0b0f17]"
+              className="mt-2 w-full py-4 rounded-xl font-bold text-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-accent text-[#0b0f17] flex items-center justify-center gap-2"
             >
-              Create Account
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </button>
           </form>
         </div>
@@ -131,4 +168,5 @@ export default function SignupPage() {
     </main>
   );
 }
+
 
