@@ -228,7 +228,7 @@ function MixerSlider({ icon, value, onChange, label }: { icon: React.ReactNode, 
   return (
     <div className="flex items-center gap-4 group">
       <div className="text-white/40 group-hover:text-accent transition-colors duration-300">
-        {React.cloneElement(icon as React.ReactElement, { size: 18 })}
+        {React.cloneElement(icon as React.ReactElement<{ size?: number }>, { size: 18 })}
       </div>
       <div className="flex-1 relative h-1 flex items-center">
         <div className="absolute w-full h-full bg-white/10 rounded-full" />

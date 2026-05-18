@@ -1,36 +1,101 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ["features", "stimmen", "archiv", "preise"];
+      const scrollPosition = window.scrollY + 120;
+
+      for (const section of sections) {
+        const el = document.getElementById(section);
+        if (el) {
+          const top = el.offsetTop;
+          const height = el.offsetHeight;
+          if (scrollPosition >= top && scrollPosition < top + height) {
+            setActiveSection(section);
+            return;
+          }
+        }
+      }
+      setActiveSection("");
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[100] px-5 md:px-8 h-[90px] bg-[#080c14]/70 backdrop-blur-[20px] border-b border-white/6">
-      <div className="max-w-[1200px] mx-auto h-full flex items-center justify-between gap-6">
+    <nav className="fixed top-0 left-0 right-0 z-[100] h-[90px] bg-[#080c14]/70 backdrop-blur-[20px] border-b border-white/5">
+      <div className="max-w-[1600px] mx-auto h-full px-6 flex items-center justify-between gap-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.svg" alt="VISULARA" className="h-12 w-auto block" />
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="relative flex items-center justify-center">
+            {/* Logo Icon */}
+            <img src="/logo.svg" alt="VISULARA logo" className="h-11 w-auto block transition-transform duration-300 group-hover:scale-105" />
+          </div>
         </Link>
 
         {/* Desktop Links */}
-        <ul className="hidden md:flex items-center gap-1 list-none">
-          <li><Link href="/service" className="px-4 py-2 text-[0.9rem] font-medium text-text-muted rounded-pill transition-all duration-200 hover:text-text-primary hover:bg-white/6">Stimmen</Link></li>
-          <li><Link href="/#preise" className="px-4 py-2 text-[0.9rem] font-medium text-text-muted rounded-pill transition-all duration-200 hover:text-text-primary hover:bg-white/6">Preise</Link></li>
-          <li><Link href="/#faq" className="px-4 py-2 text-[0.9rem] font-medium text-text-muted rounded-pill transition-all duration-200 hover:text-text-primary hover:bg-white/6">FAQ</Link></li>
-          <li><Link href="/#ueber" className="px-4 py-2 text-[0.9rem] font-medium text-text-muted rounded-pill transition-all duration-200 hover:text-text-primary hover:bg-white/6">Über uns</Link></li>
+        <ul className="hidden md:flex items-center gap-8 list-none">
+          <li>
+            <Link
+              href="/#features"
+              className={`text-[1.1rem] font-medium transition-colors duration-200 ${
+                activeSection === "features" ? "text-[#e5b842]" : "text-[#8a96b0] hover:text-[#e5b842]"
+              }`}
+            >
+              Zufluchtsort
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/#stimmen"
+              className={`text-[1.1rem] font-medium transition-colors duration-200 ${
+                activeSection === "stimmen" ? "text-[#e5b842]" : "text-[#8a96b0] hover:text-[#e5b842]"
+              }`}
+            >
+              Stimmen
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/#archiv"
+              className={`text-[1.1rem] font-medium transition-colors duration-200 ${
+                activeSection === "archiv" ? "text-[#e5b842]" : "text-[#8a96b0] hover:text-[#e5b842]"
+              }`}
+            >
+              Archiv
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/#preise"
+              className={`text-[1.1rem] font-medium transition-colors duration-200 ${
+                activeSection === "preise" ? "text-[#e5b842]" : "text-[#8a96b0] hover:text-[#e5b842]"
+              }`}
+            >
+              Abonnement
+            </Link>
+          </li>
         </ul>
 
-        {/* CTA */}
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <Link href="/meditation/neue-meditation" className="btn-primary hidden md:inline-flex">
-            Kostenlos starten
+        {/* CTA Button */}
+        <div className="flex items-center gap-3">
+          <Link
+            href="/meditation/neue-meditation"
+            className="hidden md:inline-flex items-center justify-center px-8 py-3 bg-[#e5b842] text-[#080c14] text-sm font-bold rounded-full transition-all duration-300 hover:bg-[#fad84a] hover:shadow-[0_0_24px_rgba(229,184,66,0.45)] hover:-translate-y-px active:scale-95 cursor-pointer"
+          >
+            Meditation starten
           </Link>
           <button
-            className="md:hidden bg-white/8 border border-border rounded-sm text-text-primary p-2 cursor-pointer transition-all duration-200 hover:bg-white/14"
+            className="md:hidden bg-white/5 border border-white/10 rounded-full text-white p-2.5 cursor-pointer transition-all duration-200 hover:bg-white/10"
             onClick={() => setOpen(!open)}
             aria-label="Menu"
           >
@@ -41,17 +106,44 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {open && (
-        <div className="flex flex-col gap-2 px-8 py-5 border-t border-border bg-[#080c14]/96 md:hidden">
-          <Link href="/service" className="block py-3 px-4 text-text-muted font-medium rounded-sm transition-all duration-200 hover:text-white hover:bg-white/5" onClick={() => setOpen(false)}>Stimmen</Link>
-          <Link href="/#preise" className="block py-3 px-4 text-text-muted font-medium rounded-sm transition-all duration-200 hover:text-white hover:bg-white/5" onClick={() => setOpen(false)}>Preise</Link>
-          <Link href="/#faq" className="block py-3 px-4 text-text-muted font-medium rounded-sm transition-all duration-200 hover:text-white hover:bg-white/5" onClick={() => setOpen(false)}>FAQ</Link>
-          <Link href="/#ueber" className="block py-3 px-4 text-text-muted font-medium rounded-sm transition-all duration-200 hover:text-white hover:bg-white/5" onClick={() => setOpen(false)}>Über uns</Link>
-          <Link href="/meditation/neue-meditation" className="btn-primary w-full justify-center mt-2" onClick={() => setOpen(false)}>
-            Kostenlos starten
+        <div className="absolute top-[90px] left-0 right-0 border-b border-white/5 bg-[#080c14]/98 md:hidden px-6 py-6 flex flex-col gap-4 animate-fade-in">
+          <Link
+            href="/#features"
+            className="py-3 px-4 text-sm font-semibold text-[#8a96b0] rounded-lg transition-all duration-200 hover:text-white hover:bg-white/5"
+            onClick={() => setOpen(false)}
+          >
+            Zufluchtsort
+          </Link>
+          <Link
+            href="/#stimmen"
+            className="py-3 px-4 text-sm font-semibold text-[#8a96b0] rounded-lg transition-all duration-200 hover:text-white hover:bg-white/5"
+            onClick={() => setOpen(false)}
+          >
+            Stimmen
+          </Link>
+          <Link
+            href="/#archiv"
+            className="py-3 px-4 text-sm font-semibold text-[#8a96b0] rounded-lg transition-all duration-200 hover:text-white hover:bg-white/5"
+            onClick={() => setOpen(false)}
+          >
+            Archiv
+          </Link>
+          <Link
+            href="/#preise"
+            className="py-3 px-4 text-sm font-semibold text-[#8a96b0] rounded-lg transition-all duration-200 hover:text-white hover:bg-white/5"
+            onClick={() => setOpen(false)}
+          >
+            Abonnement
+          </Link>
+          <Link
+            href="/meditation/neue-meditation"
+            className="flex justify-center items-center py-3 w-full bg-[#e5b842] text-[#080c14] text-xs font-bold rounded-full transition-all duration-200 hover:bg-[#fad84a] mt-2"
+            onClick={() => setOpen(false)}
+          >
+            Meditation starten
           </Link>
         </div>
       )}
     </nav>
   );
 }
-
