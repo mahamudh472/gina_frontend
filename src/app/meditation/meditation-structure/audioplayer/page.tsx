@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { 
   Play, 
   Pause, 
@@ -11,48 +13,282 @@ import {
   Volume2, 
   Music2, 
   Wind,
-  Mic2
+  Mic2,
+  Loader2,
+  ArrowLeft
 } from "lucide-react";
+import { api, MeditationDetails } from "@/lib/api";
 
-export default function AudioPlayerPage() {
+const STEP_TYPE_MAP: Record<string, { label: string; color: string }> = {
+  greeting: { label: "Begrüßung", color: "bg-blue-500/20 border-blue-400/30 text-blue-200" },
+  personal: { label: "Persönlich", color: "bg-purple-500/20 border-purple-400/30 text-purple-200" },
+  introduction: { label: "Einführung", color: "bg-cyan-500/20 border-cyan-400/30 text-cyan-200" },
+  suggestion: { label: "Vorschlag", color: "bg-lime-500/20 border-lime-400/30 text-lime-200" },
+  affirmation: { label: "Bestätigung", color: "bg-orange-500/20 border-orange-400/30 text-orange-200" },
+  visualization: { label: "Visualisierung", color: "bg-rose-500/20 border-rose-400/30 text-rose-200" },
+  conclusion: { label: "Abschluss", color: "bg-amber-500/20 border-amber-400/30 text-amber-200" },
+};
+
+function parseDurationToSeconds(durationStr: string) {
+  const parts = durationStr.split(":");
+  if (parts.length === 3) {
+    return parseInt(parts[0], 10) * 3600 + parseInt(parts[1], 10) * 60 + parseInt(parts[2], 10);
+  }
+  return 0;
+}
+
+function formatTime(seconds: number) {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+function AudioPlayerContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const id = searchParams.get("id");
+
+  const [meditation, setMeditation] = useState<MeditationDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [currentStepAudioTime, setCurrentStepAudioTime] = useState(0);
   const [volume, setVolume] = useState(80);
   const [musicLevel, setMusicLevel] = useState(50);
   const [natureLevel, setNatureLevel] = useState(75);
   const [isLiked, setIsLiked] = useState(false);
 
-  // Mock duration
-  const totalDuration = 1200; // 20:00 minutes
+  // HTML5 Audio Refs
+  const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
+  const natureAudioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Fetch Meditation details
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setProgress((prev) => (prev < totalDuration ? prev + 1 : prev));
-      }, 1000);
+    async function loadMeditation() {
+      try {
+        setLoading(true);
+        setError("");
+        let targetId = id;
+
+        if (!targetId) {
+          const archiveRes = await api.meditation.getArchive(1, 1);
+          if (archiveRes.results && archiveRes.results.length > 0) {
+            targetId = archiveRes.results[0].id.toString();
+          }
+        }
+
+        if (!targetId) {
+          setError("Keine Meditation gefunden.");
+          setLoading(false);
+          return;
+        }
+
+        const details = await api.meditation.getDetails(targetId);
+        setMeditation(details);
+      } catch (err: any) {
+        console.error("Failed to load meditation:", err);
+        setError(err.message || "Fehler beim Laden der Meditation.");
+      } finally {
+        setLoading(false);
+      }
     }
-    return () => clearInterval(interval);
+    loadMeditation();
+  }, [id]);
+
+  // Set up nature sound background loop
+  useEffect(() => {
+    if (meditation?.nature_sound?.file) {
+      const natureAudio = new Audio(meditation.nature_sound.file);
+      natureAudio.loop = true;
+      natureAudio.volume = natureLevel / 100;
+      if (isPlaying) {
+        natureAudio.play().catch(err => console.error("Nature sound playback failed:", err));
+      }
+      natureAudioRef.current = natureAudio;
+    }
+    return () => {
+      if (natureAudioRef.current) {
+        natureAudioRef.current.pause();
+        natureAudioRef.current = null;
+      }
+    };
+  }, [meditation?.nature_sound?.file]);
+
+  // Manage voice audio instance when step changes or meditation loads
+  useEffect(() => {
+    if (!meditation || meditation.steps.length === 0) return;
+
+    const voiceUrl = meditation.steps[currentStepIndex]?.audio_file;
+    
+    // Pause previous audio
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause();
+      voiceAudioRef.current = null;
+    }
+
+    if (voiceUrl) {
+      const audio = new Audio(voiceUrl);
+      audio.volume = volume / 100;
+      audio.currentTime = 0;
+      setCurrentStepAudioTime(0);
+
+      audio.ontimeupdate = () => {
+        setCurrentStepAudioTime(audio.currentTime);
+      };
+
+      audio.onended = () => {
+        handleStepEnded();
+      };
+
+      voiceAudioRef.current = audio;
+
+      if (isPlaying) {
+        audio.play().catch(err => console.error("Voice playback failed:", err));
+      }
+    }
+
+    return () => {
+      if (voiceAudioRef.current) {
+        voiceAudioRef.current.pause();
+      }
+    };
+  }, [meditation, currentStepIndex]);
+
+  // Sync play/pause state
+  useEffect(() => {
+    if (isPlaying) {
+      voiceAudioRef.current?.play().catch(err => console.error("Voice play error:", err));
+      natureAudioRef.current?.play().catch(err => console.error("Nature play error:", err));
+    } else {
+      voiceAudioRef.current?.pause();
+      natureAudioRef.current?.pause();
+    }
   }, [isPlaying]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  // Volume controls sync
+  useEffect(() => {
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.volume = volume / 100;
+    }
+  }, [volume]);
+
+  useEffect(() => {
+    if (natureAudioRef.current) {
+      natureAudioRef.current.volume = natureLevel / 100;
+    }
+  }, [natureLevel]);
+
+  // Step helper calculations
+  const stepStartTimes = React.useMemo(() => {
+    if (!meditation) return [];
+    let acc = 0;
+    return meditation.steps.map((step) => {
+      const start = acc;
+      acc += parseDurationToSeconds(step.duration);
+      return start;
+    });
+  }, [meditation]);
+
+  const totalDuration = meditation ? meditation.total_duration : 0;
+  const currentProgress = (stepStartTimes[currentStepIndex] || 0) + currentStepAudioTime;
+
+  const handleStepEnded = () => {
+    if (meditation && currentStepIndex < meditation.steps.length - 1) {
+      setCurrentStepIndex((prev) => prev + 1);
+    } else {
+      // Loop or stop
+      setIsPlaying(false);
+      setCurrentStepIndex(0);
+      setCurrentStepAudioTime(0);
+      if (voiceAudioRef.current) {
+        voiceAudioRef.current.currentTime = 0;
+      }
+    }
   };
 
-  const formatRemaining = (seconds: number) => {
-    const remaining = totalDuration - seconds;
-    const mins = Math.floor(remaining / 60);
-    const secs = remaining % 60;
-    return `-${mins}:${secs.toString().padStart(2, "0")}`;
+  const handleSkipForward = () => {
+    if (meditation && currentStepIndex < meditation.steps.length - 1) {
+      setCurrentStepIndex((prev) => prev + 1);
+    }
   };
+
+  const handleSkipBackward = () => {
+    if (currentStepIndex > 0) {
+      setCurrentStepIndex((prev) => prev - 1);
+    } else {
+      if (voiceAudioRef.current) {
+        voiceAudioRef.current.currentTime = 0;
+      }
+      setCurrentStepAudioTime(0);
+    }
+  };
+
+  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!meditation) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const width = rect.width;
+    const clickedPercentage = clickX / width;
+    const clickedTime = clickedPercentage * totalDuration;
+
+    let accumulatedTime = 0;
+    for (let i = 0; i < meditation.steps.length; i++) {
+      const stepDuration = parseDurationToSeconds(meditation.steps[i].duration);
+      if (clickedTime >= accumulatedTime && clickedTime <= accumulatedTime + stepDuration) {
+        setCurrentStepIndex(i);
+        const offset = clickedTime - accumulatedTime;
+        setCurrentStepAudioTime(offset);
+        if (voiceAudioRef.current) {
+          voiceAudioRef.current.currentTime = offset;
+        }
+        break;
+      }
+      accumulatedTime += stepDuration;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center pt-32 min-h-[60vh]">
+        <Loader2 className="animate-spin text-accent mb-4" size={48} />
+        <p className="text-white/60">Meditation wird geladen...</p>
+      </div>
+    );
+  }
+
+  if (error || !meditation) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center pt-32 text-center px-6 min-h-[60vh] gap-6">
+        <p className="text-red-400 font-bold text-lg max-w-md">{error || "Meditation nicht gefunden"}</p>
+        <Link
+          href="/meditation/neue-meditation"
+          className="bg-accent text-[#0b0f17] px-8 py-3 rounded-full font-bold transition-all hover:scale-105"
+        >
+          Neue Meditation erstellen
+        </Link>
+      </div>
+    );
+  }
+
+  const activeStep = meditation.steps[currentStepIndex];
+  const stepMeta = activeStep ? (STEP_TYPE_MAP[activeStep.step_type] || { label: activeStep.step_type, color: "bg-blue-500/20 border-blue-400/30 text-blue-200" }) : null;
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8 gap-5 max-w-4xl mx-auto w-full">
-      
+    <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8 gap-5 max-w-4xl mx-auto w-full pt-28">
       {/* Top Card: Player Info & Visualization */}
       <div className="glass-card w-full p-6 md:p-10 flex flex-col items-center relative overflow-hidden rounded-[2rem]">
+        
+        {/* Back navigation */}
+        <Link 
+          href={`/meditation/meditation-structure?id=${meditation.id}`}
+          className="absolute top-6 left-6 text-white/40 hover:text-white transition-all flex items-center gap-1 text-sm font-medium"
+        >
+          <ArrowLeft size={16} />
+          <span>Struktur</span>
+        </Link>
+
         {/* Favorite Button */}
         <button 
           onClick={() => setIsLiked(!isLiked)}
@@ -89,7 +325,7 @@ export default function AudioPlayerPage() {
             </div>
           </div>
           
-          {/* Concentric Ellipses (as seen in image) */}
+          {/* Concentric Ellipses */}
           <div className="absolute w-[200px] h-[100px] border border-accent/15 rounded-[100%] rotate-0 opacity-40" />
           <div className="absolute w-[250px] h-[125px] border border-accent/10 rounded-[100%] rotate-0 opacity-20" />
         </div>
@@ -97,33 +333,48 @@ export default function AudioPlayerPage() {
         {/* Text Information */}
         <div className="text-center flex flex-col items-center gap-2">
           <h1 className="text-2xl md:text-3xl font-serif text-white tracking-wide">
-            Meditation für inneren Frieden
+            {meditation.title}
           </h1>
-          <p className="text-text-muted text-base font-medium">
-            Geführt von Serena - 20:00
+          <p className="text-white/60 text-base font-medium">
+            Geführt von {meditation.charecter_voice.name} - {formatTime(totalDuration)} Min.
           </p>
           
-          <div className="mt-1 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-            <span className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">Begrüßung</span>
-          </div>
+          {stepMeta && (
+            <div className={`mt-1 px-3 py-1 rounded-full border flex items-center gap-1.5 ${stepMeta.color}`}>
+              <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+              <span className="text-[10px] font-bold uppercase tracking-widest">{stepMeta.label}</span>
+            </div>
+          )}
+
+          {activeStep && (
+            <p className="text-white/40 text-xs mt-3 max-w-[500px] line-clamp-2 italic px-4">
+              &quot;{activeStep.content}&quot;
+            </p>
+          )}
         </div>
 
         {/* Main Progress Bar */}
         <div className="w-full mt-8 flex flex-col gap-2.5">
-          <div className="relative h-1.5 w-full bg-white/10 rounded-full overflow-hidden group cursor-pointer">
+          <div 
+            onClick={handleProgressBarClick}
+            className="relative h-1.5 w-full bg-white/10 rounded-full overflow-hidden group cursor-pointer"
+          >
             <div 
               className="absolute h-full bg-accent transition-all duration-300 shadow-[0_0_10px_rgba(242,202,80,0.5)]" 
-              style={{ width: `${(progress / totalDuration) * 100}%` }}
+              style={{ width: `${(currentProgress / totalDuration) * 100}%` }}
             />
-            {/* Markers */}
-            {[0.2, 0.4, 0.6, 0.8].map((m) => (
-              <div key={m} className="absolute h-full w-[2px] bg-white/20" style={{ left: `${m * 100}%` }} />
+            {/* Markers representing steps */}
+            {stepStartTimes.slice(1).map((startTime, idx) => (
+              <div 
+                key={idx} 
+                className="absolute h-full w-[2px] bg-white/20" 
+                style={{ left: `${(startTime / totalDuration) * 100}%` }} 
+              />
             ))}
           </div>
           <div className="flex justify-between text-white/50 text-xs font-medium tabular-nums">
-            <span>{formatTime(progress)}</span>
-            <span>{formatRemaining(progress)}</span>
+            <span>{formatTime(currentProgress)}</span>
+            <span>-{formatTime(Math.max(0, totalDuration - currentProgress))}</span>
           </div>
         </div>
       </div>
@@ -133,13 +384,16 @@ export default function AudioPlayerPage() {
         
         {/* Playback Controls */}
         <div className="flex items-center justify-center gap-6 md:gap-10">
-          <button className="text-white/40 hover:text-white transition-colors">
+          <button 
+            onClick={handleSkipBackward}
+            className="text-white/40 hover:text-white transition-colors"
+          >
             <SkipBack size={24} />
           </button>
           
           <button 
             onClick={() => setIsPlaying(!isPlaying)}
-            className="w-16 h-16 rounded-full bg-accent text-bg-deep flex items-center justify-center transition-all duration-300 shadow-[0_0_20px_rgba(242,202,80,0.4)] hover:scale-105 hover:bg-accent-dark group"
+            className="w-16 h-16 rounded-full bg-accent text-[#0b0f17] flex items-center justify-center transition-all duration-300 shadow-[0_0_20px_rgba(242,202,80,0.4)] hover:scale-105 hover:bg-accent group"
           >
             {isPlaying ? (
               <Pause size={28} fill="currentColor" />
@@ -148,7 +402,10 @@ export default function AudioPlayerPage() {
             )}
           </button>
           
-          <button className="text-white/40 hover:text-white transition-colors">
+          <button 
+            onClick={handleSkipForward}
+            className="text-white/40 hover:text-white transition-colors"
+          >
             <SkipForward size={24} />
           </button>
         </div>
@@ -167,7 +424,7 @@ export default function AudioPlayerPage() {
           />
           <FeatureToggle 
             title="Visualisierung" 
-            description="Vorschlagsabschnitt wiederholen" 
+            description="Landschaftsabschnitt wiederholen" 
             icon={<Repeat size={16} />} 
           />
         </div>
@@ -253,3 +510,15 @@ function MixerSlider({ icon, value, onChange, label }: { icon: React.ReactNode, 
   );
 }
 
+export default function AudioPlayerPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex-1 flex flex-col items-center justify-center pt-32 min-h-[60vh]">
+        <Loader2 className="animate-spin text-accent mb-4" size={48} />
+        <p className="text-white/60">Meditation Player wird geladen...</p>
+      </div>
+    }>
+      <AudioPlayerContent />
+    </Suspense>
+  );
+}

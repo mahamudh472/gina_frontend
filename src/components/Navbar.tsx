@@ -3,10 +3,18 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
+  const { isAuthenticated } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -88,12 +96,22 @@ export default function Navbar() {
 
         {/* CTA Button */}
         <div className="flex items-center gap-3">
-          <Link
-            href="/meditation/neue-meditation"
-            className="hidden md:inline-flex items-center justify-center px-8 py-3 bg-[#e5b842] text-[#080c14] text-sm font-bold rounded-full transition-all duration-300 hover:bg-[#fad84a] hover:shadow-[0_0_24px_rgba(229,184,66,0.45)] hover:-translate-y-px active:scale-95 cursor-pointer"
-          >
-            Meditation starten
-          </Link>
+          {mounted && !isAuthenticated && (
+            <Link
+              href="/login"
+              className="hidden md:inline-flex items-center justify-center px-6 py-3 border border-white/20 text-white text-sm font-bold rounded-full transition-all duration-300 hover:bg-white/5 active:scale-95 cursor-pointer mr-1"
+            >
+              Anmelden
+            </Link>
+          )}
+          {mounted && isAuthenticated && (
+            <Link
+              href="/meditation/neue-meditation"
+              className="hidden md:inline-flex items-center justify-center px-8 py-3 bg-[#e5b842] text-[#080c14] text-sm font-bold rounded-full transition-all duration-300 hover:bg-[#fad84a] hover:shadow-[0_0_24px_rgba(229,184,66,0.45)] hover:-translate-y-px active:scale-95 cursor-pointer"
+            >
+              Meditation starten
+            </Link>
+          )}
           <button
             className="md:hidden bg-white/5 border border-white/10 rounded-full text-white p-2.5 cursor-pointer transition-all duration-200 hover:bg-white/10"
             onClick={() => setOpen(!open)}
@@ -135,13 +153,24 @@ export default function Navbar() {
           >
             Abonnement
           </Link>
-          <Link
-            href="/meditation/neue-meditation"
-            className="flex justify-center items-center py-3 w-full bg-[#e5b842] text-[#080c14] text-xs font-bold rounded-full transition-all duration-200 hover:bg-[#fad84a] mt-2"
-            onClick={() => setOpen(false)}
-          >
-            Meditation starten
-          </Link>
+          {mounted && !isAuthenticated && (
+            <Link
+              href="/login"
+              className="flex justify-center items-center py-3 w-full border border-white/20 text-white text-xs font-bold rounded-full transition-all duration-200 hover:bg-white/5 mt-2"
+              onClick={() => setOpen(false)}
+            >
+              Anmelden
+            </Link>
+          )}
+          {mounted && isAuthenticated && (
+            <Link
+              href="/meditation/neue-meditation"
+              className="flex justify-center items-center py-3 w-full bg-[#e5b842] text-[#080c14] text-xs font-bold rounded-full transition-all duration-200 hover:bg-[#fad84a] mt-2"
+              onClick={() => setOpen(false)}
+            >
+              Meditation starten
+            </Link>
+          )}
         </div>
       )}
     </nav>

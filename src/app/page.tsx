@@ -1,9 +1,20 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useAuth } from "@/lib/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { Star, Users, Headphones, Music, BookOpen, Waves, ChevronDown, Check, Sparkles, Zap, ArrowRight, Play, Volume2 } from "lucide-react";
 
+
 function HeroSection() {
+  const { isAuthenticated } = useAuth();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <section className="relative min-h-screen flex items-center pt-[120px] pb-[80px] overflow-hidden bg-[#080c14]">
       {/* Flipped Background Image Container */}
@@ -27,18 +38,29 @@ function HeroSection() {
           </p>
           
           <div className="flex items-center gap-4 flex-wrap animate-fade-in-up [animation-delay:0.2s]">
-            <Link 
-              href="/meditation/neue-meditation" 
-              className="inline-flex items-center justify-center px-8 py-4 bg-[#e5b842] text-[#080c14] font-bold rounded-full transition-all duration-300 hover:bg-[#f5c647] hover:-translate-y-px hover:shadow-[0_0_24px_rgba(229,184,66,0.4)] active:scale-95 text-xs tracking-wide"
-            >
-              Meine Meditation starten
-            </Link>
-            <Link 
-              href="/meditation/archiv" 
-              className="inline-flex items-center justify-center px-8 py-4 border border-[#e5b842]/40 text-[#e5b842] hover:text-[#f5c647] hover:border-[#f5c647] font-bold rounded-full transition-all duration-300 backdrop-blur-md hover:bg-white/5 active:scale-95 text-xs tracking-wide"
-            >
-              Archiv erkunden
-            </Link>
+            {mounted && isAuthenticated ? (
+              <>
+                <Link 
+                  href="/meditation/neue-meditation" 
+                  className="inline-flex items-center justify-center px-8 py-4 bg-[#e5b842] text-[#080c14] font-bold rounded-full transition-all duration-300 hover:bg-[#f5c647] hover:-translate-y-px hover:shadow-[0_0_24px_rgba(229,184,66,0.4)] active:scale-95 text-xs tracking-wide"
+                >
+                  Meine Meditation starten
+                </Link>
+                <Link 
+                  href="/meditation/archiv" 
+                  className="inline-flex items-center justify-center px-8 py-4 border border-[#e5b842]/40 text-[#e5b842] hover:text-[#f5c647] hover:border-[#f5c647] font-bold rounded-full transition-all duration-300 backdrop-blur-md hover:bg-white/5 active:scale-95 text-xs tracking-wide"
+                >
+                  Archiv erkunden
+                </Link>
+              </>
+            ) : mounted ? (
+              <Link 
+                href="/signup" 
+                className="inline-flex items-center justify-center px-8 py-4 bg-[#e5b842] text-[#080c14] font-bold rounded-full transition-all duration-300 hover:bg-[#f5c647] hover:-translate-y-px hover:shadow-[0_0_24px_rgba(229,184,66,0.4)] active:scale-95 text-xs tracking-wide"
+              >
+                Kostenlos registrieren
+              </Link>
+            ) : null}
           </div>
         </div>
 
@@ -564,6 +586,12 @@ function FAQSection() {
 }
 
 function CTABanner() {
+  const { isAuthenticated } = useAuth();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <section className="py-[60px] md:py-[100px] relative overflow-hidden px-6">
       <div className="max-w-[1600px] mx-auto rounded-3xl bg-gradient-to-br from-[#0d1320] to-[#080c14] border border-white/5 relative overflow-hidden p-8 md:p-14 shadow-2xl flex flex-col lg:flex-row justify-between items-center gap-8">
@@ -582,13 +610,23 @@ function CTABanner() {
         </div>
 
         <div className="relative z-10 flex-shrink-0">
-          <Link 
-            href="/meditation/neue-meditation" 
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-[#080c14] font-bold rounded-full transition-all duration-300 shadow-xl hover:bg-[#f2ca50] hover:shadow-[0_0_24px_rgba(242,202,80,0.3)] hover:-translate-y-px active:scale-95 text-xs tracking-wider"
-          >
-            <Sparkles size={14} />
-            MEDITATION STARTEN
-          </Link>
+          {mounted && isAuthenticated ? (
+            <Link 
+              href="/meditation/neue-meditation" 
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-[#080c14] font-bold rounded-full transition-all duration-300 shadow-xl hover:bg-[#f2ca50] hover:shadow-[0_0_24px_rgba(242,202,80,0.3)] hover:-translate-y-px active:scale-95 text-xs tracking-wider"
+            >
+              <Sparkles size={14} />
+              MEDITATION STARTEN
+            </Link>
+          ) : mounted ? (
+            <Link 
+              href="/signup" 
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-[#080c14] font-bold rounded-full transition-all duration-300 shadow-xl hover:bg-[#f2ca50] hover:shadow-[0_0_24px_rgba(242,202,80,0.3)] hover:-translate-y-px active:scale-95 text-xs tracking-wider"
+            >
+              <Sparkles size={14} />
+              JETZT STARTEN
+            </Link>
+          ) : null}
         </div>
       </div>
     </section>

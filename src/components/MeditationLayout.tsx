@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
-import { Menu, Coins } from "lucide-react";
+import { Menu, Coins, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/lib/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function MeditationLayout({
   children,
@@ -11,6 +13,29 @@ export default function MeditationLayout({
   children: React.ReactNode;
 }) {
   const [isOpen, setIsOpen] = useState(true);
+  const { isAuthenticated, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [loading, isAuthenticated, router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen relative flex items-center justify-center bg-[#080c14]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="animate-spin text-accent" size={48} />
+          <p className="text-white/60">Verbindung wird hergestellt...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#080c14]">

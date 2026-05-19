@@ -140,6 +140,92 @@ export interface RefreshResponse {
   access: string;
 }
 
+export interface CharacterVoice {
+  id: number;
+  name: string;
+  avatar_url: string;
+  short_description: string;
+  tags: string; // comma separated tags
+  file: string;
+}
+
+export interface NatureSound {
+  id: number;
+  name: string;
+  file: string;
+}
+
+export interface BackgroundImage {
+  id: number;
+  name: string;
+  file: string;
+}
+
+export interface ExperienceQuestionAnswers {
+  name: string;
+  goal: string;
+  how_you_feel?: string;
+  what_remains_outside?: string;
+  tension_spots?: string[];
+}
+
+export interface GenerateMeditationRequest {
+  category: string;
+  charecter_voice_id: number;
+  experience_question_answers: ExperienceQuestionAnswers;
+  nature_sound_name?: string | null;
+  background_image_id?: number | null;
+}
+
+export interface MeditationStep {
+  id: number;
+  step_type: string;
+  content: string;
+  audio_file: string;
+  duration: string; // "00:00:45"
+  duration_percentage: number;
+  created_at: string;
+}
+
+export interface GenerateMeditationResponse {
+  id: number;
+  meditation_id: number;
+  total_duration: number;
+  steps: MeditationStep[];
+}
+
+export interface MeditationArchiveItem {
+  id: number;
+  banner_url: string;
+  category: string;
+  category_name: string;
+  created_at: string;
+  total_duration: number;
+}
+
+export interface MeditationArchiveResponse {
+  all_meditation_ids: number[];
+  overall_total_duration: number;
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: MeditationArchiveItem[];
+}
+
+export interface MeditationDetails {
+  id: number;
+  title: string;
+  banner_url: string;
+  background_image: BackgroundImage | null;
+  charecter_voice: CharacterVoice;
+  nature_sound: NatureSound | null;
+  experience_question_answer: ExperienceQuestionAnswers;
+  category: string;
+  created_at: string;
+  steps: MeditationStep[];
+  total_duration: number;
+}
+
 // High-level API Service Wrapper
 export const api = {
   accounts: {
@@ -291,6 +377,80 @@ export const api = {
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || err.detail || "Failed to update profile");
+      }
+      return res.json();
+    },
+  },
+
+  meditation: {
+    async getCharacterVoices(): Promise<CharacterVoice[]> {
+      const res = await apiFetch("/api/v1/charecter-voice/", {
+        method: "GET",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.detail || "Failed to fetch character voices");
+      }
+      return res.json();
+    },
+
+    async getNatureSounds(): Promise<NatureSound[]> {
+      const res = await apiFetch("/api/v1/nature-sounds/", {
+        method: "GET",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.detail || "Failed to fetch nature sounds");
+      }
+      return res.json();
+    },
+
+    async getBackgroundImages(): Promise<BackgroundImage[]> {
+      const res = await apiFetch("/api/v1/background-image/", {
+        method: "GET",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.detail || "Failed to fetch background images");
+      }
+      return res.json();
+    },
+
+    async generate(data: GenerateMeditationRequest): Promise<GenerateMeditationResponse> {
+      const res = await apiFetch("/api/v1/meditation/generate/", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(
+          err.detail || 
+          (err.charecter_voice_id ? err.charecter_voice_id.join(", ") : null) ||
+          (err.category ? err.category.join(", ") : null) ||
+          "Meditation generation failed"
+        );
+      }
+      return res.json();
+    },
+
+    async getArchive(page: number = 1, pageSize: number = 10): Promise<MeditationArchiveResponse> {
+      const res = await apiFetch(`/api/v1/meditation/archive/?page=${page}&page_size=${pageSize}`, {
+        method: "GET",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.detail || "Failed to fetch meditation archive");
+      }
+      return res.json();
+    },
+
+    async getDetails(id: number | string): Promise<MeditationDetails> {
+      const res = await apiFetch(`/api/v1/meditation/${id}/`, {
+        method: "GET",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.detail || "Failed to fetch meditation details");
       }
       return res.json();
     },
