@@ -226,6 +226,47 @@ export interface MeditationDetails {
   total_duration: number;
 }
 
+export interface Plan {
+  id: number;
+  name: string;
+  slug: string;
+  price: string;
+  currency: string;
+  credit_amount: number;
+  interval: string;
+  badge: string | null;
+  top_badge: string | null;
+  features: string[];
+  is_active: boolean;
+}
+
+export interface WalletBalance {
+  balance: number;
+  last_reset_at: string;
+  updated_at: string;
+}
+
+export interface SubscriptionDetails {
+  id: number;
+  plan: Plan;
+  status: string;
+  current_period_start: string;
+  current_period_end: string;
+  cancel_at_period_end: boolean;
+  pending_plan: Plan | null;
+}
+
+export interface PlanChangeResponse {
+  message: string;
+  action: "upgrade" | "downgrade";
+  subscription: SubscriptionDetails;
+}
+
+export interface SubscriptionCancelResponse {
+  message: string;
+  subscription: SubscriptionDetails;
+}
+
 // High-level API Service Wrapper
 export const api = {
   accounts: {
@@ -451,6 +492,76 @@ export const api = {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || err.detail || "Failed to fetch meditation details");
+      }
+      return res.json();
+    },
+  },
+  finance: {
+    async getPlans(): Promise<Plan[]> {
+      const res = await apiFetch("/api/v1/plans/", { method: "GET" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.detail || "Failed to fetch plans");
+      }
+      return res.json();
+    },
+
+    async getWallet(): Promise<WalletBalance> {
+      const res = await apiFetch("/api/v1/wallet/", { method: "GET" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.detail || "Failed to fetch wallet balance");
+      }
+      return res.json();
+    },
+
+    async getSubscription(): Promise<SubscriptionDetails | null> {
+      const res = await apiFetch("/api/v1/subscription/", { method: "GET" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        if (res.status === 404 || err.detail === "No subscription found for this user.") {
+          return null;
+        }
+        throw new Error(err.error || err.detail || "Failed to fetch subscription");
+      }
+      return res.json();
+    },
+
+    async checkout(planSlug: string): Promise<{ checkout_url: string }> {
+      const res = await apiFetch("/api/v1/subscription/checkout/", {
+        method: "POST",
+        body: JSON.stringify({ plan_slug: planSlug }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(
+          err.plan_slug 
+            ? err.plan_slug.join(", ") 
+            : (err.error || err.detail || "Checkout failed")
+        );
+      }
+      return res.json();
+    },
+
+    async changePlan(planSlug: string): Promise<PlanChangeResponse> {
+      const res = await apiFetch("/api/v1/subscription/change/", {
+        method: "POST",
+        body: JSON.stringify({ plan_slug: planSlug }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.detail || "Failed to change subscription plan");
+      }
+      return res.json();
+    },
+
+    async cancelSubscription(): Promise<SubscriptionCancelResponse> {
+      const res = await apiFetch("/api/v1/subscription/cancel/", {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.detail || "Failed to cancel subscription");
       }
       return res.json();
     },

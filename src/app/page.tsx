@@ -146,7 +146,7 @@ function BentoFeatures() {
               {/* Visual Thumbnail */}
               <div className="md:col-span-5 h-[220px] md:h-full w-full rounded-2xl overflow-hidden border border-white/5 relative flex-shrink-0">
                 <img 
-                  src="/cosmic-bg-new.png" 
+                  src="/hero-step3.svg" 
                   alt="Meditation Third Eye" 
                   className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity duration-300"
                 />
@@ -586,47 +586,24 @@ function FAQSection() {
 }
 
 function CTABanner() {
-  const { isAuthenticated } = useAuth();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   return (
     <section className="py-[60px] md:py-[100px] relative overflow-hidden px-6">
-      <div className="max-w-[1600px] mx-auto rounded-3xl bg-gradient-to-br from-[#0d1320] to-[#080c14] border border-white/5 relative overflow-hidden p-8 md:p-14 shadow-2xl flex flex-col lg:flex-row justify-between items-center gap-8">
+      <div className="max-w-[1600px] mx-auto rounded-[2.5rem] bg-[#080c14] border border-white/5 relative overflow-hidden min-h-[380px] md:min-h-[440px] p-8 md:p-16 flex flex-col justify-end items-start shadow-2xl">
         
-        {/* Background cosmic galaxy image */}
-        <div className="absolute inset-0 bg-[url('/cosmic-bg.png')] bg-cover bg-center opacity-25 z-0 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0d1320] via-transparent to-[#0d1320]/90 z-0 pointer-events-none" />
+        {/* Background cosmic galaxy image (using full-opacity for galaxy visibility) */}
+        <div className="absolute inset-0 bg-[url('/bg-gradient.svg')] bg-cover bg-center opacity-90 z-0 pointer-events-none" />
+        
+        {/* Ambient dark gradient overlay to ensure readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#080c14] via-[#080c14]/40 to-transparent z-0 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#080c14]/60 via-transparent to-transparent z-0 pointer-events-none" />
 
-        <div className="relative z-10 text-center lg:text-left max-w-[700px]">
-          <h2 className="text-[2rem] md:text-[2.8rem] font-extrabold text-white leading-tight font-sans">
+        <div className="relative z-10 text-left max-w-[850px] animate-fade-in-up">
+          <h2 className="text-[2.2rem] md:text-[3.2rem] font-serif font-medium text-white leading-tight mb-3">
             Ein Universum des Friedens erwartet dich
           </h2>
-          <p className="text-[1.05rem] text-[#8a96b0] mt-3.5 leading-relaxed">
-            Schließe dich Tausenden an, die ihre geistige Gesundheit bereits mit gina revolutioniert haben.
+          <p className="text-[0.95rem] md:text-[1.05rem] text-[#8a96b0] leading-relaxed">
+            Schließe dich über 200.000 Suchenden an, die in der Visulara-Oase ihre Mitte gefunden haben.
           </p>
-        </div>
-
-        <div className="relative z-10 flex-shrink-0">
-          {mounted && isAuthenticated ? (
-            <Link 
-              href="/meditation/neue-meditation" 
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-[#080c14] font-bold rounded-full transition-all duration-300 shadow-xl hover:bg-[#f2ca50] hover:shadow-[0_0_24px_rgba(242,202,80,0.3)] hover:-translate-y-px active:scale-95 text-xs tracking-wider"
-            >
-              <Sparkles size={14} />
-              MEDITATION STARTEN
-            </Link>
-          ) : mounted ? (
-            <Link 
-              href="/signup" 
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-[#080c14] font-bold rounded-full transition-all duration-300 shadow-xl hover:bg-[#f2ca50] hover:shadow-[0_0_24px_rgba(242,202,80,0.3)] hover:-translate-y-px active:scale-95 text-xs tracking-wider"
-            >
-              <Sparkles size={14} />
-              JETZT STARTEN
-            </Link>
-          ) : null}
         </div>
       </div>
     </section>

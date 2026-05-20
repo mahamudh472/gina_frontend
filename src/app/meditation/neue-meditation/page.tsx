@@ -708,6 +708,9 @@ export default function NeueMeditationPage() {
         background_image_id: selectedBackgroundImageId,
       });
       setGenerationResult(result);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("visulara-wallet-refresh"));
+      }
     } catch (err: any) {
       console.error("Meditation generation failed:", err);
       setGenerationError(err.message || "Die Generierung ist fehlgeschlagen. Bitte versuche es erneut.");

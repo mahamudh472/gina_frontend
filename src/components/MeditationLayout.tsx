@@ -6,6 +6,7 @@ import { Menu, Coins, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 export default function MeditationLayout({
   children,
@@ -15,6 +16,32 @@ export default function MeditationLayout({
   const [isOpen, setIsOpen] = useState(true);
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
+  const [wallet, setWallet] = useState<{ balance: number } | null>(null);
+
+  const fetchWallet = async () => {
+    try {
+      const data = await api.finance.getWallet();
+      setWallet(data);
+    } catch (err) {
+      console.error("Failed to fetch wallet:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchWallet();
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchWallet();
+    };
+    window.addEventListener("visulara-wallet-refresh", handleRefresh);
+    return () => {
+      window.removeEventListener("visulara-wallet-refresh", handleRefresh);
+    };
+  }, []);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -61,10 +88,12 @@ export default function MeditationLayout({
         </div>
 
         <div className="pointer-events-auto">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 backdrop-blur-md shadow-[0_0_15px_rgba(242,202,80,0.1)]">
+          <Link href="/meditation/abonnement" className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 backdrop-blur-md shadow-[0_0_15px_rgba(242,202,80,0.1)] hover:bg-accent/20 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer">
             <Coins size={16} className="text-accent" />
-            <span className="text-white text-[0.85rem] font-bold tracking-wide">2 Credit</span>
-          </div>
+            <span className="text-white text-[0.85rem] font-bold tracking-wide">
+              {wallet !== null ? `${wallet.balance} ${wallet.balance === 1 ? "Credit" : "Credits"}` : "..."}
+            </span>
+          </Link>
         </div>
       </header>
 

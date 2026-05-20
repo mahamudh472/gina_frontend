@@ -276,9 +276,19 @@ function AudioPlayerContent() {
   const stepMeta = activeStep ? (STEP_TYPE_MAP[activeStep.step_type] || { label: activeStep.step_type, color: "bg-blue-500/20 border-blue-400/30 text-blue-200" }) : null;
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8 gap-5 max-w-4xl mx-auto w-full pt-28">
+    <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8 gap-5 max-w-4xl mx-auto w-full pt-28 relative">
+      {meditation?.background_image?.file && (
+        <div 
+          className="fixed inset-0 pointer-events-none bg-cover bg-center bg-no-repeat transition-all duration-1000 z-0 animate-fade-in" 
+          style={{ backgroundImage: `url(${meditation.background_image.file})` }}
+        >
+          <div className="absolute inset-0 bg-[#080c14]/40" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#080c14]/60 via-[#0d1628]/45 to-[#1e283c]/30" />
+        </div>
+      )}
+
       {/* Top Card: Player Info & Visualization */}
-      <div className="glass-card w-full p-6 md:p-10 flex flex-col items-center relative overflow-hidden rounded-[2rem]">
+      <div className="glass-card w-full p-6 md:p-10 flex flex-col items-center relative overflow-hidden rounded-[2rem] z-10">
         
         {/* Back navigation */}
         <Link 
@@ -380,7 +390,7 @@ function AudioPlayerContent() {
       </div>
 
       {/* Bottom Card: Controls & Mixer */}
-      <div className="glass-card w-full p-6 md:p-8 flex flex-col gap-8 rounded-[2rem]">
+      <div className="glass-card w-full p-6 md:p-8 flex flex-col gap-8 rounded-[2rem] z-10">
         
         {/* Playback Controls */}
         <div className="flex items-center justify-center gap-6 md:gap-10">
