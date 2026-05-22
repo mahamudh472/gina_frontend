@@ -33,15 +33,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function initializeAuth() {
       const tokens = getTokens();
       
-      // Fast paint: load cached profile from localStorage
+      // Fast paint: load cached profile only when auth tokens are present.
       if (typeof window !== "undefined") {
         const cachedUser = localStorage.getItem("visulara_user_profile");
-        if (cachedUser) {
+        if (tokens?.access && cachedUser) {
           try {
             setUser(JSON.parse(cachedUser));
           } catch {
             // Ignore corrupted cache
           }
+        } else if (!tokens?.access && !tokens?.refresh) {
+          clearTokens();
         }
       }
 
@@ -66,6 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const handleUnauthorized = () => {
       setUser(null);
       clearTokens();
+      setLoading(false);
       router.push("/login");
     };
 

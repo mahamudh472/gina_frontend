@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="de" suppressHydrationWarning>
+    <html lang="de" suppressHydrationWarning data-scroll-behavior="smooth">
       <body suppressHydrationWarning>
         <AuthProvider>{children}</AuthProvider>
       </body>

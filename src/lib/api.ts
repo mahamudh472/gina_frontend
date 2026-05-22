@@ -34,15 +34,23 @@ export function clearTokens() {
 
 // Queue for holding failed requests while token is refreshing
 let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
+let refreshSubscribers: ((token: string | null) => void)[] = [];
 
-function subscribeTokenRefresh(cb: (token: string) => void) {
-  refreshSubscribers.push(cb);
+function waitForTokenRefresh() {
+  return new Promise<string | null>((resolve) => {
+    refreshSubscribers.push(resolve);
+  });
 }
 
-function onRefreshed(token: string) {
+function onRefreshComplete(token: string | null) {
   refreshSubscribers.forEach((cb) => cb(token));
   refreshSubscribers = [];
+}
+
+function dispatchUnauthorized() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("visulara-unauthorized"));
+  }
 }
 
 /**
@@ -72,46 +80,52 @@ export async function apiFetch(path: string, options: RequestOptions = {}): Prom
     path === "/api/v1/accounts/token/refresh/" ||
     path === "/api/v1/accounts/register/";
 
-  if (response.status === 401 && tokens?.refresh && !isAuthEndpoint) {
-    if (!isRefreshing) {
-      isRefreshing = true;
-      try {
-        const refreshResponse = await fetch(`${BASE_URL}/api/v1/accounts/token/refresh/`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refresh: tokens.refresh }),
-        });
-
-        if (refreshResponse.ok) {
-          const data = await refreshResponse.json();
-          setTokens(data.access);
-          isRefreshing = false;
-          onRefreshed(data.access);
-        } else {
-          isRefreshing = false;
-          clearTokens();
-          if (typeof window !== "undefined") {
-            window.dispatchEvent(new CustomEvent("visulara-unauthorized"));
-          }
-          return response; // Return original unauthorized response
-        }
-      } catch (error) {
-        isRefreshing = false;
-        clearTokens();
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("visulara-unauthorized"));
-        }
-        throw error;
-      }
+  if (response.status === 401 && !isAuthEndpoint) {
+    if (!tokens?.refresh) {
+      clearTokens();
+      dispatchUnauthorized();
+      return response;
     }
 
-    // Wait for the new token and retry the request
-    return new Promise((resolve) => {
-      subscribeTokenRefresh((newToken) => {
-        headers["Authorization"] = `Bearer ${newToken}`;
-        resolve(fetch(url, { ...options, headers }));
+    if (isRefreshing) {
+      const newToken = await waitForTokenRefresh();
+      if (!newToken) {
+        return response;
+      }
+
+      headers["Authorization"] = `Bearer ${newToken}`;
+      return fetch(url, { ...options, headers });
+    }
+
+    isRefreshing = true;
+    try {
+      const refreshResponse = await fetch(`${BASE_URL}/api/v1/accounts/token/refresh/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh: tokens.refresh }),
       });
-    });
+
+      if (!refreshResponse.ok) {
+        clearTokens();
+        onRefreshComplete(null);
+        dispatchUnauthorized();
+        return response;
+      }
+
+      const data = await refreshResponse.json();
+      setTokens(data.access, data.refresh);
+      onRefreshComplete(data.access);
+
+      headers["Authorization"] = `Bearer ${data.access}`;
+      return fetch(url, { ...options, headers });
+    } catch (error) {
+      clearTokens();
+      onRefreshComplete(null);
+      dispatchUnauthorized();
+      throw error;
+    } finally {
+      isRefreshing = false;
+    }
   }
 
   return response;

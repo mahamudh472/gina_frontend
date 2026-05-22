@@ -444,9 +444,6 @@ function StepExperience({
                 }`}
               >
                 <img src={l.file} alt={l.name} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end justify-center p-4">
-                  <span className="text-[0.75rem] font-bold text-white text-center leading-tight">{l.name}</span>
-                </div>
                 {selectedBackgroundImageId === l.id && (
                   <div className="absolute top-2 right-2 w-5 h-5 bg-accent rounded-full flex items-center justify-center">
                     <div className="w-2.5 h-1.5 border-l-2 border-b-2 border-[#0b0f17] -rotate-45 mb-0.5" />
@@ -664,9 +661,10 @@ export default function NeueMeditationPage() {
         if (voicesRes.length > 0) setVoice(voicesRes[0].id);
         if (soundsRes.length > 0) setSelectedNatureSoundName(soundsRes[0].name);
         if (imagesRes.length > 0) setSelectedBackgroundImageId(imagesRes[0].id);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to load options:", err);
-        setOptionsError(err.message || "Fehler beim Laden der Optionen. Bitte lade die Seite neu.");
+        const error = err as Error;
+        setOptionsError(error.message || "Fehler beim Laden der Optionen. Bitte lade die Seite neu.");
       } finally {
         setOptionsLoading(false);
       }
@@ -711,9 +709,10 @@ export default function NeueMeditationPage() {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("visulara-wallet-refresh"));
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Meditation generation failed:", err);
-      setGenerationError(err.message || "Die Generierung ist fehlgeschlagen. Bitte versuche es erneut.");
+      const error = err as Error;
+      setGenerationError(error.message || "Die Generierung ist fehlgeschlagen. Bitte versuche es erneut.");
     } finally {
       setGenerationLoading(false);
     }

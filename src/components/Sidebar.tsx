@@ -28,7 +28,7 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
 
   const openProfileModal = () => {
     if (user) {
-      setFullName(user.full_name);
+      setFullName(user.full_name || "");
     }
     setIsModalOpen(true);
   };
@@ -77,7 +77,7 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
     }
   };
 
-  const userInitial = user?.full_name ? user.full_name.charAt(0).toUpperCase() : "U";
+  const userInitial = user?.full_name ? user.full_name.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : "U");
 
   return (
     <>
@@ -119,7 +119,7 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
                 </div>
                 <div className="flex flex-col gap-0.5 min-w-0">
                   <span className="text-[0.85rem] font-semibold text-text-primary truncate block">
-                    {user?.full_name}
+                    {user?.full_name || "Benutzer"}
                   </span>
                   <span className="text-[0.72rem] text-text-muted">Mitglied</span>
                 </div>

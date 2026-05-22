@@ -73,7 +73,7 @@ export default function MeditationLayout({
 
       {/* Header with Nav Toggle and Logo */}
       <header className={`fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-6 py-6 pointer-events-none transition-all duration-500 ease-in-out ${isOpen ? "md:ml-[220px]" : "ml-0"}`}>
-        <button 
+        <button
           onClick={() => setIsOpen(!isOpen)}
           className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all duration-500 ease-in-out backdrop-blur-md pointer-events-auto"
           aria-label={isOpen ? "Sidebar schließen" : "Sidebar öffnen"}
