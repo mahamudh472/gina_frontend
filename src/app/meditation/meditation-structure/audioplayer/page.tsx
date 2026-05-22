@@ -23,8 +23,8 @@ const STEP_TYPE_MAP: Record<string, { label: string; color: string }> = {
   greeting: { label: "Begrüßung", color: "bg-blue-500/20 border-blue-400/30 text-blue-200" },
   personal: { label: "Persönlich", color: "bg-purple-500/20 border-purple-400/30 text-purple-200" },
   introduction: { label: "Einführung", color: "bg-cyan-500/20 border-cyan-400/30 text-cyan-200" },
-  suggestion: { label: "Vorschlag", color: "bg-lime-500/20 border-lime-400/30 text-lime-200" },
-  affirmation: { label: "Bestätigung", color: "bg-orange-500/20 border-orange-400/30 text-orange-200" },
+  suggestion: { label: "Suggestion", color: "bg-lime-500/20 border-lime-400/30 text-lime-200" },
+  affirmation: { label: "Affirmation", color: "bg-orange-500/20 border-orange-400/30 text-orange-200" },
   visualization: { label: "Visualisierung", color: "bg-rose-500/20 border-rose-400/30 text-rose-200" },
   conclusion: { label: "Abschluss", color: "bg-amber-500/20 border-amber-400/30 text-amber-200" },
 };
@@ -60,9 +60,56 @@ function AudioPlayerContent() {
   const [natureLevel, setNatureLevel] = useState(75);
   const [isLiked, setIsLiked] = useState(false);
 
+  const [loopSettings, setLoopSettings] = useState<Record<string, number | "infinity">>({
+    affirmation: 0,
+    suggestion: 0,
+    visualization: 0,
+  });
+  const [repeatCount, setRepeatCount] = useState(0);
+
+  // Reset repeat count when step index changes
+  useEffect(() => {
+    setRepeatCount(0);
+  }, [currentStepIndex]);
+
   // HTML5 Audio Refs
   const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
   const natureAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleStepEnded = () => {
+    if (!meditation) return;
+    const currentStep = meditation.steps[currentStepIndex];
+    const stepType = currentStep?.step_type;
+    const loopSetting = loopSettings[stepType] ?? 0;
+
+    if (loopSetting !== 0 && (loopSetting === "infinity" || repeatCount < loopSetting)) {
+      setRepeatCount((prev) => prev + 1);
+      setCurrentStepAudioTime(0);
+      if (voiceAudioRef.current) {
+        voiceAudioRef.current.currentTime = 0;
+        if (isPlaying) {
+          voiceAudioRef.current.play().catch((err) => console.error("Voice playback failed on loop:", err));
+        }
+      }
+    } else {
+      if (currentStepIndex < meditation.steps.length - 1) {
+        setCurrentStepIndex((prev) => prev + 1);
+      } else {
+        // End of meditation
+        setIsPlaying(false);
+        setCurrentStepIndex(0);
+        setCurrentStepAudioTime(0);
+        if (voiceAudioRef.current) {
+          voiceAudioRef.current.currentTime = 0;
+        }
+      }
+    }
+  };
+
+  const handleStepEndedRef = useRef(handleStepEnded);
+  useEffect(() => {
+    handleStepEndedRef.current = handleStepEnded;
+  });
 
   // Fetch Meditation details
   useEffect(() => {
@@ -139,7 +186,7 @@ function AudioPlayerContent() {
       };
 
       audio.onended = () => {
-        handleStepEnded();
+        handleStepEndedRef.current();
       };
 
       voiceAudioRef.current = audio;
@@ -194,19 +241,7 @@ function AudioPlayerContent() {
   const totalDuration = meditation ? meditation.total_duration : 0;
   const currentProgress = (stepStartTimes[currentStepIndex] || 0) + currentStepAudioTime;
 
-  const handleStepEnded = () => {
-    if (meditation && currentStepIndex < meditation.steps.length - 1) {
-      setCurrentStepIndex((prev) => prev + 1);
-    } else {
-      // Loop or stop
-      setIsPlaying(false);
-      setCurrentStepIndex(0);
-      setCurrentStepAudioTime(0);
-      if (voiceAudioRef.current) {
-        voiceAudioRef.current.currentTime = 0;
-      }
-    }
-  };
+
 
   const handleSkipForward = () => {
     if (meditation && currentStepIndex < meditation.steps.length - 1) {
@@ -424,18 +459,24 @@ function AudioPlayerContent() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <FeatureToggle 
             title="Affirmationen" 
-            description="Bestätigungsabschnitt wiederholen" 
+            description="Affirmationsabschnitt wiederholen" 
             icon={<Mic2 size={16} />} 
+            value={loopSettings.affirmation}
+            onChange={(val) => setLoopSettings(prev => ({ ...prev, affirmation: val }))}
           />
           <FeatureToggle 
             title="Suggestionen" 
-            description="Vorschlagsabschnitt wiederholen" 
+            description="Suggestionsabschnitt wiederholen" 
             icon={<Repeat size={16} />} 
+            value={loopSettings.suggestion}
+            onChange={(val) => setLoopSettings(prev => ({ ...prev, suggestion: val }))}
           />
           <FeatureToggle 
             title="Visualisierung" 
             description="Landschaftsabschnitt wiederholen" 
             icon={<Repeat size={16} />} 
+            value={loopSettings.visualization}
+            onChange={(val) => setLoopSettings(prev => ({ ...prev, visualization: val }))}
           />
         </div>
 
@@ -465,24 +506,84 @@ function AudioPlayerContent() {
   );
 }
 
-function FeatureToggle({ title, description, icon }: { title: string, description: string, icon: React.ReactNode }) {
-  const [isLooping, setIsLooping] = useState(false);
+function FeatureToggle({ 
+  title, 
+  description, 
+  icon, 
+  value, 
+  onChange 
+}: { 
+  title: string; 
+  description: string; 
+  icon: React.ReactNode; 
+  value: number | "infinity"; 
+  onChange: (val: number | "infinity") => void; 
+}) {
+  const [showOptions, setShowOptions] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   
+  const handleSelect = (val: number | "infinity") => {
+    onChange(val);
+    setShowOptions(false);
+  };
+
+  useEffect(() => {
+    if (!showOptions) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowOptions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showOptions]);
+
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between min-h-[32px]">
         <span className="text-white/80 font-bold text-sm tracking-wide">{title}</span>
-        <button 
-          onClick={() => setIsLooping(!isLooping)}
-          className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold transition-all duration-300 ${
-            isLooping 
-            ? "bg-accent/20 border-accent text-accent shadow-[0_0_10px_rgba(242,202,80,0.2)]" 
-            : "bg-white/5 border-white/10 text-white/40 hover:border-white/20 hover:text-white/60"
-          }`}
-        >
-          <Repeat size={10} />
-          LOOP
-        </button>
+        
+        <div className="relative" ref={containerRef}>
+          <button 
+            onClick={() => setShowOptions(!showOptions)}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold transition-all duration-300 ${
+              value !== 0 
+              ? "bg-accent/20 border-accent text-accent shadow-[0_0_10px_rgba(242,202,80,0.2)] hover:bg-accent/30" 
+              : "bg-white/5 border-white/10 text-white/40 hover:border-white/20 hover:text-white/60"
+            }`}
+          >
+            <Repeat size={10} />
+            {value === 0 ? "LOOP" : (value === "infinity" ? "∞" : `${value}x`)}
+          </button>
+
+          {showOptions && (
+            <div className="absolute bottom-full right-0 mb-2 flex items-center gap-1 bg-[#10141f]/95 border border-white/15 rounded-full p-1 shadow-[0_10px_25px_rgba(0,0,0,0.6)] backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200 z-50">
+              {( [0, 1, 2, 3, "infinity"] as const ).map((option) => {
+                const isActive = value === option;
+                let label = "";
+                if (option === 0) label = "Off";
+                else if (option === "infinity") label = "∞";
+                else label = `${option}x`;
+
+                return (
+                  <button
+                    key={option}
+                    onClick={() => handleSelect(option)}
+                    className={`px-2 py-0.5 rounded-full text-[9px] font-bold transition-all whitespace-nowrap ${
+                      isActive
+                        ? "bg-accent text-[#0b0f17] shadow-[0_0_8px_rgba(242,202,80,0.3)]"
+                        : "text-white/60 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
       <p className="text-white/30 text-[11px] leading-tight">
         {description}

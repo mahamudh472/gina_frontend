@@ -10,8 +10,8 @@ const STEP_TYPE_MAP: Record<string, { label: string; subtitle: string; color: st
   greeting: { label: "Begrüßung", subtitle: "Ein herzliches Willkommen", color: "#52B3FF" },
   personal: { label: "Persönlich", subtitle: "Deine persönliche Intention", color: "#c084fc" },
   introduction: { label: "Einführung", subtitle: "Atem & Ankommen", color: "#22d3ee" },
-  suggestion: { label: "Vorschlag", subtitle: "Sanfte Führung", color: "#a3e635" },
-  affirmation: { label: "Bestätigung", subtitle: "Affirmationen verankern", color: "#fb923c" },
+  suggestion: { label: "Suggestion", subtitle: "Sanfte Führung", color: "#a3e635" },
+  affirmation: { label: "Affirmation", subtitle: "Affirmationen verankern", color: "#fb923c" },
   visualization: { label: "Visualisierung", subtitle: "Reise an deinen Kraftort", color: "#f43f5e" },
   conclusion: { label: "Abschluss", subtitle: "Rückkehr ins Hier & Jetzt", color: "#fbbf24" },
 };
