@@ -5,7 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import { Menu, Coins, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { api } from "@/lib/api";
 
 export default function MeditationLayout({
@@ -16,6 +16,7 @@ export default function MeditationLayout({
   const [isOpen, setIsOpen] = useState(true);
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [wallet, setWallet] = useState<{ balance: number } | null>(null);
 
   const fetchWallet = async () => {
@@ -64,10 +65,16 @@ export default function MeditationLayout({
     return null;
   }
 
+  const isAudioPlayer = pathname?.startsWith("/meditation/meditation-structure/audioplayer");
+  const bgImage = isAudioPlayer ? "/hero-step2.svg" : "/banner-step1-new.svg";
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#080c14]">
       {/* Fixed cosmic background */}
-      <div className="fixed inset-0 z-0 bg-[url('/banner-step1-new.svg')] bg-cover bg-center bg-no-repeat">
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-all duration-1000"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      >
         <div className="absolute inset-0 bg-gradient-to-br from-[#080c14]/40 via-[#0d1628]/30 to-[#1e283c]/20" />
       </div>
 

@@ -12,6 +12,7 @@ const STEP_TYPE_MAP: Record<string, { label: string; subtitle: string; color: st
   introduction: { label: "Einführung", subtitle: "Atem & Ankommen", color: "#22d3ee" },
   suggestion: { label: "Suggestion", subtitle: "Sanfte Führung", color: "#a3e635" },
   affirmation: { label: "Affirmation", subtitle: "Affirmationen verankern", color: "#fb923c" },
+  confirmation: { label: "Affirmation", subtitle: "Affirmationen verankern", color: "#fb923c" },
   visualization: { label: "Visualisierung", subtitle: "Reise an deinen Kraftort", color: "#f43f5e" },
   conclusion: { label: "Abschluss", subtitle: "Rückkehr ins Hier & Jetzt", color: "#fbbf24" },
 };
@@ -95,8 +96,9 @@ function MeditationStructureContent() {
   }
 
   const segments = meditation.steps.map((step) => {
-    const meta = STEP_TYPE_MAP[step.step_type] || { 
-      label: step.step_type.charAt(0).toUpperCase() + step.step_type.slice(1), 
+    const normalizedType = step.step_type === "confirmation" ? "affirmation" : step.step_type;
+    const meta = STEP_TYPE_MAP[normalizedType] || { 
+      label: normalizedType.charAt(0).toUpperCase() + normalizedType.slice(1), 
       subtitle: "Meditationsschritt", 
       color: "#fbbf24" 
     };
