@@ -89,6 +89,7 @@ function AudioPlayerContent() {
   // HTML5 Audio Refs
   const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
   const natureAudioRef = useRef<HTMLAudioElement | null>(null);
+  const musicAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleStepEnded = () => {
     if (!meditation) return;
@@ -187,6 +188,25 @@ function AudioPlayerContent() {
     };
   }, [meditation?.nature_sound?.file]);
 
+  // Set up background music loop
+  useEffect(() => {
+    if (meditation?.music?.file) {
+      const musicAudio = new Audio(meditation.music.file);
+      musicAudio.loop = true;
+      musicAudio.volume = musicLevel / 100;
+      if (isPlaying) {
+        musicAudio.play().catch(err => console.error("Music sound playback failed:", err));
+      }
+      musicAudioRef.current = musicAudio;
+    }
+    return () => {
+      if (musicAudioRef.current) {
+        musicAudioRef.current.pause();
+        musicAudioRef.current = null;
+      }
+    };
+  }, [meditation?.music?.file]);
+
   // Manage voice audio instance when step changes or meditation loads
   useEffect(() => {
     if (!meditation || meditation.steps.length === 0) return;
@@ -258,6 +278,7 @@ function AudioPlayerContent() {
         voiceAudioRef.current?.play().catch(err => console.error("Voice play error:", err));
       }
       natureAudioRef.current?.play().catch(err => console.error("Nature play error:", err));
+      musicAudioRef.current?.play().catch(err => console.error("Music play error:", err));
     } else {
       voiceAudioRef.current?.pause();
       if (isDelaying) {
@@ -268,6 +289,7 @@ function AudioPlayerContent() {
         setIsDelaying(false);
       }
       natureAudioRef.current?.pause();
+      musicAudioRef.current?.pause();
     }
   }, [isPlaying, isDelaying]);
 
@@ -283,6 +305,12 @@ function AudioPlayerContent() {
       natureAudioRef.current.volume = natureLevel / 100;
     }
   }, [natureLevel]);
+
+  useEffect(() => {
+    if (musicAudioRef.current) {
+      musicAudioRef.current.volume = musicLevel / 100;
+    }
+  }, [musicLevel]);
 
   // Step helper calculations
   const stepStartTimes = React.useMemo(() => {

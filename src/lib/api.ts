@@ -169,6 +169,12 @@ export interface NatureSound {
   file: string;
 }
 
+export interface Music {
+  id: number;
+  name: string;
+  file: string;
+}
+
 export interface BackgroundImage {
   id: number;
   name: string;
@@ -233,6 +239,7 @@ export interface MeditationDetails {
   background_image: BackgroundImage | null;
   charecter_voice: CharacterVoice;
   nature_sound: NatureSound | null;
+  music: Music | null;
   experience_question_answer: ExperienceQuestionAnswers;
   category: string;
   created_at: string;
