@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+    allowedDevOrigins: ['10.10.13.5', 'visulara.de'],
 };
 
 export default nextConfig;

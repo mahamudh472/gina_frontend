@@ -68,6 +68,18 @@ function AudioPlayerContent() {
   });
   const [repeatCount, setRepeatCount] = useState(0);
   const [imageError, setImageError] = useState(false);
+  const [isDelaying, setIsDelaying] = useState(false);
+
+  // Refs for tracking delays, timeouts, seeking, and playing state
+  const playbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const delayDurationRef = useRef<number>(0);
+  const isPlayingRef = useRef(isPlaying);
+  const seekOffsetRef = useRef<number>(0);
+
+  // Keep isPlayingRef in sync with isPlaying
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
 
   // Reset repeat count when step index changes
   useEffect(() => {
@@ -91,11 +103,19 @@ function AudioPlayerContent() {
       if (voiceAudioRef.current) {
         voiceAudioRef.current.currentTime = 0;
         if (isPlaying) {
-          voiceAudioRef.current.play().catch((err) => console.error("Voice playback failed on loop:", err));
+          if (playbackTimeoutRef.current) {
+            clearTimeout(playbackTimeoutRef.current);
+          }
+          setIsDelaying(true);
+          playbackTimeoutRef.current = setTimeout(() => {
+            setIsDelaying(false);
+            playbackTimeoutRef.current = null;
+          }, 2000); // 2 seconds delay on loop repeat
         }
       }
     } else {
       if (currentStepIndex < meditation.steps.length - 1) {
+        delayDurationRef.current = 2000; // 2 seconds delay before next step starts
         setCurrentStepIndex((prev) => prev + 1);
       } else {
         // End of meditation
@@ -179,11 +199,21 @@ function AudioPlayerContent() {
       voiceAudioRef.current = null;
     }
 
+    // Clear any existing delay timer
+    if (playbackTimeoutRef.current) {
+      clearTimeout(playbackTimeoutRef.current);
+      playbackTimeoutRef.current = null;
+    }
+    setIsDelaying(false);
+
     if (voiceUrl) {
       const audio = new Audio(voiceUrl);
       audio.volume = volume / 100;
-      audio.currentTime = 0;
-      setCurrentStepAudioTime(0);
+      
+      const initialTime = seekOffsetRef.current;
+      seekOffsetRef.current = 0; // reset
+      audio.currentTime = initialTime;
+      setCurrentStepAudioTime(initialTime);
 
       audio.ontimeupdate = () => {
         setCurrentStepAudioTime(audio.currentTime);
@@ -196,7 +226,18 @@ function AudioPlayerContent() {
       voiceAudioRef.current = audio;
 
       if (isPlaying) {
-        audio.play().catch(err => console.error("Voice playback failed:", err));
+        const delay = delayDurationRef.current;
+        delayDurationRef.current = 0; // reset
+
+        if (delay > 0) {
+          setIsDelaying(true);
+          playbackTimeoutRef.current = setTimeout(() => {
+            setIsDelaying(false);
+            playbackTimeoutRef.current = null;
+          }, delay);
+        } else {
+          audio.play().catch(err => console.error("Voice playback failed:", err));
+        }
       }
     }
 
@@ -204,19 +245,31 @@ function AudioPlayerContent() {
       if (voiceAudioRef.current) {
         voiceAudioRef.current.pause();
       }
+      if (playbackTimeoutRef.current) {
+        clearTimeout(playbackTimeoutRef.current);
+      }
     };
   }, [meditation, currentStepIndex]);
 
   // Sync play/pause state
   useEffect(() => {
     if (isPlaying) {
-      voiceAudioRef.current?.play().catch(err => console.error("Voice play error:", err));
+      if (!isDelaying) {
+        voiceAudioRef.current?.play().catch(err => console.error("Voice play error:", err));
+      }
       natureAudioRef.current?.play().catch(err => console.error("Nature play error:", err));
     } else {
       voiceAudioRef.current?.pause();
+      if (isDelaying) {
+        if (playbackTimeoutRef.current) {
+          clearTimeout(playbackTimeoutRef.current);
+          playbackTimeoutRef.current = null;
+        }
+        setIsDelaying(false);
+      }
       natureAudioRef.current?.pause();
     }
-  }, [isPlaying]);
+  }, [isPlaying, isDelaying]);
 
   // Volume controls sync
   useEffect(() => {
@@ -249,12 +302,14 @@ function AudioPlayerContent() {
 
   const handleSkipForward = () => {
     if (meditation && currentStepIndex < meditation.steps.length - 1) {
+      delayDurationRef.current = 1000; // 1 second delay for manual skip
       setCurrentStepIndex((prev) => prev + 1);
     }
   };
 
   const handleSkipBackward = () => {
     if (currentStepIndex > 0) {
+      delayDurationRef.current = 1000; // 1 second delay for manual skip
       setCurrentStepIndex((prev) => prev - 1);
     } else {
       if (voiceAudioRef.current) {
@@ -276,8 +331,12 @@ function AudioPlayerContent() {
     for (let i = 0; i < meditation.steps.length; i++) {
       const stepDuration = parseDurationToSeconds(meditation.steps[i].duration);
       if (clickedTime >= accumulatedTime && clickedTime <= accumulatedTime + stepDuration) {
-        setCurrentStepIndex(i);
         const offset = clickedTime - accumulatedTime;
+        if (i !== currentStepIndex) {
+          seekOffsetRef.current = offset;
+        }
+        delayDurationRef.current = 0; // Seek is instant
+        setCurrentStepIndex(i);
         setCurrentStepAudioTime(offset);
         if (voiceAudioRef.current) {
           voiceAudioRef.current.currentTime = offset;
@@ -394,16 +453,24 @@ function AudioPlayerContent() {
           </p>
 
           {stepMeta && (
-            <div className={`mt-1 px-3 py-1 rounded-full border flex items-center gap-1.5 ${stepMeta.color}`}>
-              <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-widest">{stepMeta.label}</span>
+            <div className={`mt-1 px-3 py-1 rounded-full border flex items-center gap-1.5 transition-all duration-300 ${isDelaying ? "bg-accent/20 border-accent/40 text-accent" : stepMeta.color}`}>
+              <span className={`w-1.5 h-1.5 rounded-full bg-current ${isDelaying ? "animate-ping" : "animate-pulse"}`} />
+              <span className="text-[10px] font-bold uppercase tracking-widest">
+                {isDelaying ? "Atempause" : stepMeta.label}
+              </span>
             </div>
           )}
 
           {activeStep && (
-            <p className="text-white/40 text-xs mt-3 max-w-[500px] line-clamp-2 italic px-4">
-              &quot;{activeStep.content}&quot;
-            </p>
+            <div className="h-10 mt-3 flex items-center justify-center">
+              <p className="text-white/40 text-xs max-w-[500px] line-clamp-2 italic px-4 text-center">
+                {isDelaying ? (
+                  <span className="animate-pulse text-accent font-medium not-italic">Atmen Sie tief ein und aus...</span>
+                ) : (
+                  `"${activeStep.content}"`
+                )}
+              </p>
+            </div>
           )}
         </div>
 

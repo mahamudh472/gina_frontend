@@ -1,5 +1,6 @@
 "use client";
 
+import "@/instrumentation-client";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api, getTokens, setTokens, clearTokens, UserProfile } from "./api";
