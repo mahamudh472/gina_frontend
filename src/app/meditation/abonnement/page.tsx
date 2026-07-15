@@ -156,10 +156,10 @@ export default function AbonnementPage() {
   }
 
   return (
-    <div className="px-10 py-16 max-w-[1200px] mx-auto w-full flex flex-col gap-12 min-h-screen relative z-10">
+    <div className="px-4 sm:px-10 py-16 max-w-[1200px] mx-auto w-full flex flex-col gap-12 min-h-screen relative z-10">
       <div className="text-left flex flex-col items-start mt-4">
-        <h1 className="text-[3.5rem] font-serif font-bold text-white mb-2 tracking-tight leading-tight">Ihr Abonnement</h1>
-        <p className="text-[1.1rem] text-white/60 max-w-[800px] leading-[1.6]">
+        <h1 className="text-[2.2rem] sm:text-[3.5rem] font-serif font-bold text-white mb-2 tracking-tight leading-tight">Ihr Abonnement</h1>
+        <p className="text-[1rem] sm:text-[1.1rem] text-white/60 max-w-[800px] leading-[1.6]">
           Entfesseln Sie die volle Frequenz des Kosmos. Wählen Sie die Reise, die mit Ihrer spirituellen Entwicklung in Resonanz steht.
         </p>
       </div>
@@ -186,24 +186,24 @@ export default function AbonnementPage() {
         <div className="flex flex-col md:flex-row items-center justify-between p-6 md:px-10 rounded-[32px] gap-8 backdrop-blur-2xl bg-white/[0.03] border border-white/10 shadow-2xl relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-accent/5 to-transparent pointer-events-none" />
           
-          <div className="flex items-center gap-6 relative z-10">
-            <div className="w-16 h-16 bg-accent/20 border border-accent/40 rounded-full flex items-center justify-center text-accent shadow-[0_0_20px_rgba(242,202,80,0.2)]">
-              <Zap size={28} fill="currentColor" />
+          <div className="flex items-center gap-4 sm:gap-6 relative z-10 w-full sm:w-auto">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-accent/20 border border-accent/40 rounded-full flex items-center justify-center text-accent shadow-[0_0_20px_rgba(242,202,80,0.2)] flex-shrink-0">
+              <Zap size={24} className="sm:size-[28px]" fill="currentColor" />
             </div>
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-4 flex-wrap">
-                <span className="text-[2.2rem] font-bold text-white tracking-tight">
+            <div className="flex flex-col gap-1.5 min-w-0">
+              <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                <span className="text-[1.6rem] sm:text-[2.2rem] font-bold text-white tracking-tight leading-tight truncate">
                   {subscription.plan.name} Plan
                 </span>
-                <span className={`text-[0.7rem] font-black px-3 py-1 rounded-full ${
+                <span className={`text-[0.65rem] sm:text-[0.7rem] font-black px-2.5 sm:px-3 py-1 rounded-full ${
                   subscription.status === "active" && !subscription.cancel_at_period_end
                     ? "bg-accent text-black"
                     : "bg-red-500/20 text-red-400 border border-red-500/30"
                 }`}>
-                  {subscription.cancel_at_period_end ? "KÜNDIGUNG VORGEMERKT" : "AKTIV"}
+                  {subscription.cancel_at_period_end ? "KÜNDIGUNG" : "AKTIV"}
                 </span>
               </div>
-              <span className="text-[1rem] text-white/40 font-medium">
+              <span className="text-[0.9rem] sm:text-[1rem] text-white/40 font-medium leading-tight">
                 {subscription.plan.price} {subscription.plan.currency === "eur" ? "€" : "$"} / {subscription.plan.interval === "month" ? "Monat" : subscription.plan.interval} 
                 {" · "}
                 {subscription.cancel_at_period_end ? (
@@ -223,23 +223,23 @@ export default function AbonnementPage() {
           </div>
           
           <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10 w-full md:w-auto">
-            <div className="flex items-center bg-black/40 border border-white/5 rounded-2xl py-4 px-2 w-full sm:w-auto justify-center backdrop-blur-md">
-              <div className="px-8 flex flex-col items-center gap-1.5 min-w-[140px]">
-                <Coins size={22} className="text-accent" />
-                <span className="text-[0.7rem] text-white/40 uppercase tracking-[0.2em] font-bold">
+            <div className="flex items-center bg-black/40 border border-white/5 rounded-2xl py-3 sm:py-4 px-1 sm:px-2 w-full justify-center backdrop-blur-md">
+              <div className="px-3 sm:px-8 flex flex-col items-center gap-1.5 min-w-[100px] sm:min-w-[140px]">
+                <Coins size={20} className="text-accent" />
+                <span className="text-[0.65rem] sm:text-[0.7rem] text-white/40 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-bold">
                   Credits
                 </span>
-                <span className="text-[1.8rem] font-bold text-white leading-none mt-1">
+                <span className="text-[1.5rem] sm:text-[1.8rem] font-bold text-white leading-none mt-1">
                   {wallet?.balance}
                 </span>
               </div>
-              <div className="w-px h-10 bg-white/10" />
-              <div className="px-8 flex flex-col items-center gap-1.5 min-w-[140px]">
-                <Calendar size={22} className="text-white/40" />
-                <span className="text-[0.7rem] text-white/40 uppercase tracking-[0.2em] font-bold">
+              <div className="w-px h-8 bg-white/10" />
+              <div className="px-3 sm:px-8 flex flex-col items-center gap-1.5 min-w-[110px] sm:min-w-[140px]">
+                <Calendar size={20} className="text-white/40" />
+                <span className="text-[0.65rem] sm:text-[0.7rem] text-white/40 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-bold">
                   Nächster Reset
                 </span>
-                <span className="text-[1rem] font-bold text-white mt-1">
+                <span className="text-[0.85rem] sm:text-[1rem] font-bold text-white mt-1">
                   {wallet?.last_reset_at ? formatDate(new Date(new Date(wallet.last_reset_at).setMonth(new Date(wallet.last_reset_at).getMonth() + 1)).toISOString()) : "-"}
                 </span>
               </div>
@@ -249,30 +249,29 @@ export default function AbonnementPage() {
       ) : (
         <div className="flex flex-col md:flex-row items-center justify-between p-6 md:px-10 rounded-[32px] gap-8 backdrop-blur-2xl bg-white/[0.03] border border-white/10 shadow-2xl relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent pointer-events-none" />
-          
-          <div className="flex items-center gap-6 relative z-10">
-            <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white/40">
-              <Zap size={28} />
+              <div className="flex items-center gap-4 sm:gap-6 relative z-10 w-full sm:w-auto">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white/40 flex-shrink-0">
+                <Zap size={24} className="sm:size-[28px]" />
+              </div>
+              <div className="flex flex-col gap-1 min-w-0">
+                <h3 className="text-[1.4rem] sm:text-[2rem] font-bold text-white/90 tracking-tight leading-tight truncate">Kein aktives Abonnement</h3>
+                <p className="text-[0.85rem] sm:text-[1rem] text-white/40 font-medium leading-snug">
+                  Abonnieren Sie einen Plan, um Ihre Meditationsreise mit monatlichen Credits zu starten.
+                </p>
+              </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <h3 className="text-[2rem] font-bold text-white/90 tracking-tight leading-none">Kein aktives Abonnement</h3>
-              <p className="text-[1rem] text-white/40 font-medium">
-                Abonnieren Sie einen Plan, um Ihre Meditationsreise mit monatlichen Credits zu starten.
-              </p>
-            </div>
-          </div>
 
-          <div className="flex items-center bg-black/40 border border-white/5 rounded-2xl py-4 px-2 w-full md:w-auto justify-center backdrop-blur-md relative z-10">
-            <div className="px-8 flex flex-col items-center gap-1.5 min-w-[140px]">
-              <Coins size={22} className="text-white/40" />
-              <span className="text-[0.7rem] text-white/40 uppercase tracking-[0.2em] font-bold">
-                Credits
-              </span>
-              <span className="text-[1.8rem] font-bold text-white/60 leading-none mt-1">
-                {wallet?.balance || 0}
-              </span>
+            <div className="flex items-center bg-black/40 border border-white/5 rounded-2xl py-3 sm:py-4 px-4 sm:px-2 w-full md:w-auto justify-center backdrop-blur-md relative z-10">
+              <div className="px-3 sm:px-8 flex flex-col items-center gap-1.5 min-w-[100px] sm:min-w-[140px]">
+                <Coins size={20} className="text-white/40" />
+                <span className="text-[0.65rem] sm:text-[0.7rem] text-white/40 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-bold">
+                  Credits
+                </span>
+                <span className="text-[1.5rem] sm:text-[1.8rem] font-bold text-white/60 leading-none mt-1">
+                  {wallet?.balance || 0}
+                </span>
+              </div>
             </div>
-          </div>
         </div>
       )}
 
@@ -331,12 +330,12 @@ export default function AbonnementPage() {
                   <span className={`text-[0.75rem] font-bold tracking-[0.2em] uppercase ${highlighted ? "text-accent" : "text-white/40"}`}>
                     {p.badge || (p.slug === "pro" ? "BUSINESS" : "EINSTEIGER")}
                   </span>
-                  <h3 className="text-[2.2rem] font-bold text-white mt-1">{p.name}</h3>
+                  <h3 className="text-[1.8rem] sm:text-[2.2rem] font-bold text-white mt-1">{p.name}</h3>
                 </div>
 
                 <div className="mb-2">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-[3.5rem] font-bold text-white tracking-tighter">
+                    <span className="text-[2.8rem] sm:text-[3.5rem] font-bold text-white tracking-tighter">
                       {p.price} {p.currency === "eur" ? "€" : "$"}
                     </span>
                   </div>

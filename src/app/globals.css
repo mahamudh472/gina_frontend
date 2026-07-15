@@ -87,7 +87,7 @@
 
 @layer base {
   body {
-    @apply font-sans bg-bg-deep text-text-primary antialiased overflow-x-hidden;
+    @apply font-sans bg-bg-deep text-text-primary antialiased overflow-x-clip;
   }
 
   html {
@@ -178,4 +178,10 @@
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-white/25;
+}
+
+@media (max-width: 767px) {
+  .sidebar-initial-hide {
+    transform: translateX(-100%) !important;
+  }
 }

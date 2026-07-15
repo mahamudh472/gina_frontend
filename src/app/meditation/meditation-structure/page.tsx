@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Play, Clock, Loader2, ArrowLeft } from "lucide-react";
+import { Play, Clock, Loader2, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { api, MeditationDetails } from "@/lib/api";
 
 const STEP_TYPE_MAP: Record<string, { label: string; subtitle: string; color: string }> = {
@@ -37,6 +37,7 @@ function MeditationStructureContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const tabsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadMeditation() {
@@ -118,10 +119,10 @@ function MeditationStructureContent() {
   const totalSecs = Math.floor(meditation.total_duration % 60);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center w-full max-w-[950px] mx-auto px-6 pt-32 pb-16 animate-in fade-in duration-700">
+    <div className="flex-1 flex flex-col items-center justify-center w-full max-w-[950px] mx-auto px-4 sm:px-6 pt-20 md:pt-32 pb-16 animate-in fade-in duration-700">
       
       {/* "Deine Meditation ist bereit" Badge */}
-      <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-[#f2ca50]/30 bg-[#f2ca50]/5 text-[#f2ca50] text-[0.7rem] font-bold tracking-widest uppercase mb-8 backdrop-blur-md">
+      <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-[#f2ca50]/30 bg-[#f2ca50]/5 text-[#f2ca50] text-[0.7rem] font-bold tracking-widest uppercase mb-6 md:mb-8 backdrop-blur-md">
         <span className="flex items-center justify-center w-4 h-4 rounded-full border border-[#f2ca50]/40 text-[#f2ca50]">
           <Play size={8} fill="currentColor" className="ml-[1px]" />
         </span>
@@ -129,79 +130,107 @@ function MeditationStructureContent() {
       </div>
 
       {/* Page Title */}
-      <h1 className="text-[2.5rem] md:text-[3.5rem] font-serif text-white text-center font-normal tracking-wide mb-3 leading-tight">
+      <h1 className="text-[1.8rem] sm:text-[2.5rem] md:text-[3.5rem] font-serif text-white text-center font-normal tracking-wide mb-3 leading-tight">
         Deine Meditationsstruktur
       </h1>
       
       {/* Total Duration */}
-      <div className="flex items-center gap-1.5 justify-center text-[#f2ca50] text-[0.85rem] font-semibold mb-12">
+      <div className="flex items-center gap-1.5 justify-center text-[#f2ca50] text-[0.85rem] font-semibold mb-8 md:mb-12">
         <Clock size={14} className="text-[#f2ca50]" />
         <span>Gesamt: {totalMins} Min. {totalSecs} Sek.</span>
       </div>
 
-      {/* Tabs Container */}
-      <div className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-1.5 backdrop-blur-xl mb-8 flex flex-row justify-between gap-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {segments.map((seg, idx) => {
-          const isActive = activeIndex === idx;
-          return (
-            <button
-              key={idx}
-              onClick={() => setActiveIndex(idx)}
-              className={`flex-1 flex flex-col items-center justify-center py-2.5 px-4 rounded-xl cursor-pointer transition-all duration-300 min-w-[95px] md:min-w-0 ${
-                isActive
-                  ? "bg-[#f2ca50] text-[#0b0f17] font-bold shadow-[0_4px_20px_rgba(242,202,80,0.25)] scale-[1.02]"
-                  : "text-white/60 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <span className="text-[0.8rem] font-bold tracking-wide whitespace-nowrap">{seg.label}</span>
-              <span className={`text-[0.68rem] mt-0.5 font-semibold ${isActive ? "text-[#0b0f17]/70" : "text-white/40"}`}>{seg.duration}</span>
-            </button>
-          );
-        })}
+      {/* Tabs Container with Scroll Arrows */}
+      <div className="w-full relative mb-6 md:mb-8">
+        {/* Left scroll button */}
+        <button
+          onClick={() => tabsRef.current?.scrollBy({ left: -120, behavior: 'smooth' })}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-[#0b0f17]/80 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-[#0b0f17] transition-all md:hidden"
+          aria-label="Scroll left"
+        >
+          <ChevronLeft size={16} />
+        </button>
+
+        {/* Right scroll button */}
+        <button
+          onClick={() => tabsRef.current?.scrollBy({ left: 120, behavior: 'smooth' })}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-[#0b0f17]/80 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-[#0b0f17] transition-all md:hidden"
+          aria-label="Scroll right"
+        >
+          <ChevronRight size={16} />
+        </button>
+
+        <div 
+          ref={tabsRef}
+          className="w-full overflow-x-auto touch-pan-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden bg-white/[0.03] border border-white/10 rounded-2xl p-1.5 backdrop-blur-xl"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          <div className="inline-flex flex-row flex-nowrap gap-1">
+            {segments.map((seg, idx) => {
+              const isActive = activeIndex === idx;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setActiveIndex(idx)}
+                  className={`flex-shrink-0 flex flex-col items-center justify-center py-2.5 px-4 rounded-xl cursor-pointer transition-all duration-300 min-w-[110px] ${
+                    isActive
+                      ? "bg-[#f2ca50] text-[#0b0f17] font-bold shadow-[0_4px_20px_rgba(242,202,80,0.25)] scale-[1.02]"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  <span className="text-[0.8rem] font-bold tracking-wide whitespace-nowrap">{seg.label}</span>
+                  <span className={`text-[0.68rem] mt-0.5 font-semibold ${isActive ? "text-[#0b0f17]/70" : "text-white/40"}`}>{seg.duration}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Segment Detail Card */}
       {activeSeg && (
-        <div className="w-full bg-white/[0.02] border border-white/10 rounded-[2rem] p-8 md:p-10 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.35)] mb-12 relative overflow-hidden transition-all duration-500">
+        <div className="w-full bg-white/[0.02] border border-white/10 rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-10 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.35)] mb-8 md:mb-12 relative overflow-hidden transition-all duration-500">
           
           {/* Card Header */}
-          <div className="flex items-center gap-4 flex-wrap">
-            {/* Glowing Orb */}
-            <div 
-              className="w-10 h-10 rounded-full flex items-center justify-center relative flex-shrink-0 border"
-              style={{ 
-                backgroundColor: `${activeSeg.color}15`,
-                borderColor: `${activeSeg.color}30`
-              }}
-            >
+          <div className="flex items-start sm:items-center justify-between gap-4 flex-wrap w-full">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+              {/* Glowing Orb */}
               <div 
-                className="w-3.5 h-3.5 rounded-full animate-pulse" 
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center relative flex-shrink-0 border"
                 style={{ 
-                  backgroundColor: activeSeg.color,
-                  boxShadow: `0 0 15px ${activeSeg.color}`
+                  backgroundColor: `${activeSeg.color}15`,
+                  borderColor: `${activeSeg.color}30`
                 }}
-              />
-            </div>
+              >
+                <div 
+                  className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 rounded-full animate-pulse" 
+                  style={{ 
+                    backgroundColor: activeSeg.color,
+                    boxShadow: `0 0 15px ${activeSeg.color}`
+                  }}
+                />
+              </div>
 
-            {/* Titles */}
-            <div className="flex flex-col gap-0.5">
-              <h3 className="text-xl md:text-2xl font-serif text-white tracking-wide">
-                {activeSeg.title}
-              </h3>
-              <span className="text-[#52B3FF] text-[0.85rem] font-bold tracking-wide">
-                {activeSeg.subtitle}
-              </span>
+              {/* Titles */}
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <h3 className="text-lg sm:text-xl md:text-2xl font-serif text-white tracking-wide truncate">
+                  {activeSeg.title}
+                </h3>
+                <span className="text-[#52B3FF] text-[0.75rem] sm:text-[0.85rem] font-bold tracking-wide">
+                  {activeSeg.subtitle}
+                </span>
+              </div>
             </div>
 
             {/* Segment Duration Badge */}
-            <div className="ml-auto flex items-center gap-1.5 px-3 py-1 bg-[#f2ca50]/10 border border-[#f2ca50]/20 rounded-full text-[#f2ca50] text-[0.85rem] font-bold flex-shrink-0">
+            <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-[#f2ca50]/10 border border-[#f2ca50]/20 rounded-full text-[#f2ca50] text-[0.75rem] sm:text-[0.85rem] font-bold flex-shrink-0">
               <Clock size={12} />
               <span>{activeSeg.duration}</span>
             </div>
           </div>
 
           {/* Description */}
-          <p className="text-[0.95rem] md:text-[1.05rem] text-white/80 leading-relaxed font-normal mt-8 mb-10 max-w-[680px]">
+          <p className="text-[0.9rem] sm:text-[0.95rem] md:text-[1.05rem] text-white/80 leading-relaxed font-normal mt-5 mb-6 sm:mt-8 sm:mb-10 max-w-[680px]">
             {activeSeg.description}
           </p>
 
@@ -228,7 +257,7 @@ function MeditationStructureContent() {
       <Link
         href={`/meditation/meditation-structure/audioplayer?id=${meditation.id}`}
         suppressHydrationWarning
-        className="inline-flex items-center gap-3 bg-[#f2ca50] text-[#0b0f17] px-10 py-4.5 rounded-full font-bold text-[1.1rem] transition-all duration-300 hover:scale-105 shadow-[0_10px_30px_rgba(242,202,80,0.3)] hover:shadow-[0_15px_40px_rgba(242,202,80,0.4)] mb-4"
+        className="inline-flex items-center justify-center gap-3 bg-[#f2ca50] text-[#0b0f17] px-6 sm:px-10 py-4 sm:py-4.5 rounded-full font-bold text-[1rem] sm:text-[1.1rem] transition-all duration-300 hover:scale-105 shadow-[0_10px_30px_rgba(242,202,80,0.3)] hover:shadow-[0_15px_40px_rgba(242,202,80,0.4)] mb-4 w-full sm:w-auto text-center"
       >
         <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[#0b0f17] text-[#f2ca50] flex-shrink-0">
           <Play size={10} fill="currentColor" className="ml-[1.5px]" />

@@ -70,6 +70,16 @@ function AudioPlayerContent() {
   const [imageError, setImageError] = useState(false);
   const [isDelaying, setIsDelaying] = useState(false);
 
+  // Outro phase: 30-second block after voice ends where music/nature continue
+  const OUTRO_DURATION = 30; // seconds
+  const OUTRO_FADE_START = 25; // fade begins at this second
+  const [isOutro, setIsOutro] = useState(false);
+  const [outroElapsed, setOutroElapsed] = useState(0);
+  const outroIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const outroStartTimeRef = useRef<number>(0);
+  const savedMusicLevelRef = useRef<number>(50);
+  const savedNatureLevelRef = useRef<number>(75);
+
   // Refs for tracking delays, timeouts, seeking, and playing state
   const playbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const delayDurationRef = useRef<number>(0);
@@ -119,13 +129,8 @@ function AudioPlayerContent() {
         delayDurationRef.current = 2000; // 2 seconds delay before next step starts
         setCurrentStepIndex((prev) => prev + 1);
       } else {
-        // End of meditation
-        setIsPlaying(false);
-        setCurrentStepIndex(0);
-        setCurrentStepAudioTime(0);
-        if (voiceAudioRef.current) {
-          voiceAudioRef.current.currentTime = 0;
-        }
+        // Voice ended on last step — start 30-second outro phase
+        startOutro();
       }
     }
   };
@@ -134,6 +139,71 @@ function AudioPlayerContent() {
   useEffect(() => {
     handleStepEndedRef.current = handleStepEnded;
   });
+
+  // Start the 30-second outro phase
+  const startOutro = () => {
+    // Save current levels for fade calculation
+    savedMusicLevelRef.current = musicLevel;
+    savedNatureLevelRef.current = natureLevel;
+    setIsOutro(true);
+    setOutroElapsed(0);
+    outroStartTimeRef.current = Date.now();
+
+    // Voice audio stops
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause();
+    }
+
+    // Music and nature keep playing (they are already looping)
+    // Start interval to track elapsed time and handle fade
+    outroIntervalRef.current = setInterval(() => {
+      const elapsed = (Date.now() - outroStartTimeRef.current) / 1000;
+      setOutroElapsed(elapsed);
+
+      if (elapsed >= OUTRO_FADE_START) {
+        // Fade out over the last 5 seconds
+        const fadeProgress = Math.min((elapsed - OUTRO_FADE_START) / (OUTRO_DURATION - OUTRO_FADE_START), 1);
+        const fadeMultiplier = 1 - fadeProgress;
+
+        if (musicAudioRef.current) {
+          musicAudioRef.current.volume = (savedMusicLevelRef.current / 100) * fadeMultiplier;
+        }
+        if (natureAudioRef.current) {
+          natureAudioRef.current.volume = (savedNatureLevelRef.current / 100) * fadeMultiplier;
+        }
+      }
+
+      if (elapsed >= OUTRO_DURATION) {
+        // Outro complete — stop everything
+        endOutro();
+      }
+    }, 50); // Update every 50ms for smooth fade
+  };
+
+  const endOutro = () => {
+    if (outroIntervalRef.current) {
+      clearInterval(outroIntervalRef.current);
+      outroIntervalRef.current = null;
+    }
+    setIsOutro(false);
+    setOutroElapsed(0);
+    setIsPlaying(false);
+    setCurrentStepIndex(0);
+    setCurrentStepAudioTime(0);
+
+    // Reset volumes back to saved levels
+    if (musicAudioRef.current) {
+      musicAudioRef.current.volume = savedMusicLevelRef.current / 100;
+      musicAudioRef.current.pause();
+    }
+    if (natureAudioRef.current) {
+      natureAudioRef.current.volume = savedNatureLevelRef.current / 100;
+      natureAudioRef.current.pause();
+    }
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.currentTime = 0;
+    }
+  };
 
   // Fetch Meditation details
   useEffect(() => {
@@ -268,13 +338,17 @@ function AudioPlayerContent() {
       if (playbackTimeoutRef.current) {
         clearTimeout(playbackTimeoutRef.current);
       }
+      if (outroIntervalRef.current) {
+        clearInterval(outroIntervalRef.current);
+        outroIntervalRef.current = null;
+      }
     };
   }, [meditation, currentStepIndex]);
 
   // Sync play/pause state
   useEffect(() => {
     if (isPlaying) {
-      if (!isDelaying) {
+      if (!isDelaying && !isOutro) {
         voiceAudioRef.current?.play().catch(err => console.error("Voice play error:", err));
       }
       natureAudioRef.current?.play().catch(err => console.error("Nature play error:", err));
@@ -287,6 +361,11 @@ function AudioPlayerContent() {
           playbackTimeoutRef.current = null;
         }
         setIsDelaying(false);
+      }
+      // If we're stopping during outro, clean up the outro
+      if (isOutro) {
+        endOutro();
+        return;
       }
       natureAudioRef.current?.pause();
       musicAudioRef.current?.pause();
@@ -323,8 +402,11 @@ function AudioPlayerContent() {
     });
   }, [meditation]);
 
-  const totalDuration = meditation ? meditation.total_duration : 0;
-  const currentProgress = (stepStartTimes[currentStepIndex] || 0) + currentStepAudioTime;
+  const voiceDuration = meditation ? meditation.total_duration : 0;
+  const totalDuration = voiceDuration + OUTRO_DURATION;
+  const currentProgress = isOutro
+    ? voiceDuration + outroElapsed
+    : (stepStartTimes[currentStepIndex] || 0) + currentStepAudioTime;
 
 
 
@@ -480,7 +562,14 @@ function AudioPlayerContent() {
             Geführt von {meditation.charecter_voice.name} - {formatTime(totalDuration)} Min.
           </p>
 
-          {stepMeta && (
+          {isOutro ? (
+            <div className="mt-1 px-3 py-1 rounded-full border flex items-center gap-1.5 transition-all duration-300 bg-emerald-500/20 border-emerald-400/30 text-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+              <span className="text-[10px] font-bold uppercase tracking-widest">
+                Nachklang
+              </span>
+            </div>
+          ) : stepMeta && (
             <div className={`mt-1 px-3 py-1 rounded-full border flex items-center gap-1.5 transition-all duration-300 ${isDelaying ? "bg-accent/20 border-accent/40 text-accent" : stepMeta.color}`}>
               <span className={`w-1.5 h-1.5 rounded-full bg-current ${isDelaying ? "animate-ping" : "animate-pulse"}`} />
               <span className="text-[10px] font-bold uppercase tracking-widest">
@@ -489,13 +578,17 @@ function AudioPlayerContent() {
             </div>
           )}
 
-          {activeStep && (
+          {(activeStep || isOutro) && (
             <div className="h-10 mt-3 flex items-center justify-center">
               <p className="text-white/40 text-xs max-w-[500px] line-clamp-2 italic px-4 text-center">
-                {isDelaying ? (
+                {isOutro ? (
+                  <span className={`font-medium not-italic transition-opacity duration-1000 ${
+                    outroElapsed >= OUTRO_FADE_START ? 'text-white/20' : 'text-emerald-300/70 animate-pulse'
+                  }`}>Lassen Sie die Klänge sanft ausklingen...</span>
+                ) : isDelaying ? (
                   <span className="animate-pulse text-accent font-medium not-italic">Atmen Sie tief ein und aus...</span>
                 ) : (
-                  `"${activeStep.content}"`
+                  `"${activeStep?.content}"`
                 )}
               </p>
             </div>
@@ -509,7 +602,7 @@ function AudioPlayerContent() {
             className="relative h-1.5 w-full bg-white/10 rounded-full overflow-hidden group cursor-pointer"
           >
             <div
-              className="absolute h-full bg-accent transition-all duration-300 shadow-[0_0_10px_rgba(242,202,80,0.5)]"
+              className={`absolute h-full transition-all duration-300 shadow-[0_0_10px_rgba(242,202,80,0.5)] ${isOutro ? 'bg-emerald-400' : 'bg-accent'}`}
               style={{ width: `${(currentProgress / totalDuration) * 100}%` }}
             />
             {/* Markers representing steps */}
@@ -520,6 +613,11 @@ function AudioPlayerContent() {
                 style={{ left: `${(startTime / totalDuration) * 100}%` }}
               />
             ))}
+            {/* Outro start marker */}
+            <div
+              className="absolute h-full w-[2px] bg-emerald-400/40"
+              style={{ left: `${(voiceDuration / totalDuration) * 100}%` }}
+            />
           </div>
           <div className="flex justify-between text-white/50 text-xs font-medium tabular-nums">
             <span>{formatTime(currentProgress)}</span>

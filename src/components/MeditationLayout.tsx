@@ -15,6 +15,13 @@ export default function MeditationLayout({
 }) {
   const [isOpen, setIsOpen] = useState(true);
   const { isAuthenticated, loading } = useAuth();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsOpen(false);
+    }
+  }, []);
   const router = useRouter();
   const pathname = usePathname();
   const [wallet, setWallet] = useState<{ balance: number } | null>(null);
@@ -69,7 +76,7 @@ export default function MeditationLayout({
   const bgImage = isAudioPlayer ? "/hero-step2.svg" : "/banner-step1-new.svg";
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#080c14]">
+    <div className="min-h-screen relative overflow-x-clip overflow-y-visible bg-[#080c14]">
       {/* Fixed cosmic background */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-all duration-1000"
@@ -88,24 +95,32 @@ export default function MeditationLayout({
           <Menu size={20} />
         </button>
 
-        <div className="absolute left-1/2 -translate-x-1/2 pointer-events-auto">
+        <div className="static md:absolute md:left-1/2 md:-translate-x-1/2 pointer-events-auto flex items-center justify-center">
           <Link href="/">
-            <img src="/logo.svg" alt="Visulara Logo" className="h-12 w-auto" />
+            <img src="/logo.svg" alt="Visulara Logo" className="h-8 md:h-12 w-auto" />
           </Link>
         </div>
 
         <div className="pointer-events-auto">
-          <Link href="/meditation/abonnement" className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 backdrop-blur-md shadow-[0_0_15px_rgba(242,202,80,0.1)] hover:bg-accent/20 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer">
-            <Coins size={16} className="text-accent" />
-            <span className="text-white text-[0.85rem] font-bold tracking-wide">
+          <Link href="/meditation/abonnement" className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-accent/10 border border-accent/20 backdrop-blur-md shadow-[0_0_15px_rgba(242,202,80,0.1)] hover:bg-accent/20 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer">
+            <Coins size={14} className="text-accent md:size-[16px]" />
+            <span className="text-white text-[0.75rem] md:text-[0.85rem] font-bold tracking-wide">
               {wallet !== null ? `${wallet.balance} ${wallet.balance === 1 ? "Credit" : "Credits"}` : "..."}
             </span>
           </Link>
         </div>
       </header>
 
+      {/* Sidebar Backdrop on Mobile */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-[140] bg-black/40 backdrop-blur-sm md:hidden pointer-events-auto cursor-pointer"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <Sidebar isOpen={isOpen} />
+      <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} />
 
       {/* Main content */}
       <main className={`relative z-10 transition-all duration-500 ease-in-out min-h-screen flex flex-col ${isOpen ? "md:ml-[220px]" : "ml-0"}`}>

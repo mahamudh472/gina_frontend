@@ -40,10 +40,10 @@ export default function StartseitePage() {
         </div>
 
         {/* Primary CTA Button */}
-        <div className="mt-4 flex flex-col items-center gap-4">
+        <div className="mt-4 flex flex-col items-center gap-4 w-full px-4 sm:px-0">
           <Link 
             href="/meditation/neue-meditation" 
-            className="px-12 py-5 rounded-full bg-accent text-[#0b0f17] text-[1.25rem] font-black no-underline shadow-[0_0_50px_rgba(242,202,80,0.4)] transition-all duration-500 hover:scale-[1.03] hover:shadow-[0_0_70px_rgba(242,202,80,0.6)] hover:brightness-110 active:scale-95"
+            className="w-full sm:w-auto text-center justify-center flex items-center px-8 sm:px-12 py-4 sm:py-5 rounded-full bg-accent text-[#0b0f17] text-[1.1rem] sm:text-[1.25rem] font-black no-underline shadow-[0_0_50px_rgba(242,202,80,0.4)] transition-all duration-500 hover:scale-[1.03] hover:shadow-[0_0_70px_rgba(242,202,80,0.6)] hover:brightness-110 active:scale-95"
           >
             Meine Meditation starten
           </Link>

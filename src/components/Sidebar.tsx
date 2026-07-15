@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Sparkles, BookOpen, CreditCard, LogOut, Settings, User, Lock, X, Loader2 } from "lucide-react";
@@ -13,11 +13,17 @@ const navItems = [
   { href: "/meditation/abonnement", label: "Abonnement", icon: CreditCard },
 ];
 
-export default function Sidebar({ isOpen }: { isOpen: boolean }) {
+export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose?: () => void }) {
   const pathname = usePathname();
   const { user, isAuthenticated, logout, updateProfile, changePassword } = useAuth();
   
+  const [isInitialized, setIsInitialized] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsInitialized(true);
+  }, []);
   const [activeTab, setActiveTab] = useState<"profile" | "password">("profile");
   const [fullName, setFullName] = useState("");
   const [passwords, setPasswords] = useState({ old: "", new: "", confirm: "" });
@@ -81,9 +87,17 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
 
   return (
     <>
-      <aside className={`fixed top-0 left-0 bottom-0 w-[220px] bg-[#0d1320] border-r border-white/8 flex flex-col py-5 z-50 transition-transform duration-500 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed top-0 left-0 bottom-0 w-[220px] bg-[#0d1320] border-r border-white/8 flex flex-col py-5 z-[150] transition-transform duration-500 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"} ${!isInitialized ? "sidebar-initial-hide" : ""}`}>
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 px-5 pb-6 text-none border-b border-white/8 mb-4">
+        <Link 
+          href="/" 
+          onClick={() => {
+            if (window.innerWidth < 768) {
+              onClose?.();
+            }
+          }}
+          className="flex items-center gap-2.5 px-5 pb-6 text-none border-b border-white/8 mb-4"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.svg" alt="VISULARA" className="h-10 w-auto block" />
         </Link>
@@ -97,6 +111,11 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
                 key={href}
                 href={href}
                 suppressHydrationWarning
+                onClick={() => {
+                  if (window.innerWidth < 768) {
+                    onClose?.();
+                  }
+                }}
                 className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-md text-[0.9rem] font-medium transition-all duration-200 ${active ? "text-accent bg-accent/8" : "text-text-muted hover:text-text-primary hover:bg-white/6"}`}
               >
                 <Icon size={18} className={active ? "text-accent" : ""} />
@@ -129,6 +148,11 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
           ) : (
             <Link 
               href="/login" 
+              onClick={() => {
+                if (window.innerWidth < 768) {
+                  onClose?.();
+                }
+              }}
               className="flex items-center gap-2.5 p-3 rounded-md bg-white/4 hover:bg-white/8 transition-all group"
             >
               <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[0.8rem] font-bold text-white group-hover:bg-accent group-hover:text-[#0b0f17] transition-all flex-shrink-0">

@@ -188,67 +188,81 @@ export default function ArchivPage() {
               return (
                 <div 
                   key={m.id} 
-                  className="group relative bg-white/[0.05] border border-white/10 rounded-[2rem] p-3 flex items-center gap-6 backdrop-blur-2xl transition-all duration-500 hover:bg-white/[0.09] hover:border-white/20 hover:shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
+                  className="group relative bg-white/[0.05] border border-white/10 rounded-[1.5rem] md:rounded-[2rem] p-3 md:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 backdrop-blur-2xl transition-all duration-500 hover:bg-white/[0.09] hover:border-white/20 hover:shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
                 >
-                  {/* Thumbnail */}
-                  <Link 
-                    href={`/meditation/meditation-structure?id=${m.id}`}
-                    className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-[1.2rem] overflow-hidden shadow-2xl border border-white/10 relative cursor-pointer"
-                  >
-                    <img 
-                      src={m.banner_url || "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=400&h=400&auto=format&fit=crop"} 
-                      alt={m.category_name} 
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-115" 
-                    />
-                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500" />
-                  </Link>
+                  <div className="flex items-center gap-4 md:gap-6 w-full sm:w-auto">
+                    {/* Thumbnail */}
+                    <Link 
+                      href={`/meditation/meditation-structure?id=${m.id}`}
+                      className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 flex-shrink-0 rounded-[1.2rem] overflow-hidden shadow-2xl border border-white/10 relative cursor-pointer"
+                    >
+                      <img 
+                        src={m.banner_url || "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=400&h=400&auto=format&fit=crop"} 
+                        alt={m.category_name} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-115" 
+                      />
+                      <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500" />
+                    </Link>
 
-                  {/* Content */}
-                  <div className="flex-1 flex flex-col gap-4 py-1">
-                    <div className="flex flex-col gap-1">
-                      <Link 
-                        href={`/meditation/meditation-structure?id=${m.id}`}
-                        className="text-xl md:text-2xl font-bold text-white tracking-tight hover:text-accent transition-colors cursor-pointer"
-                      >
-                        {m.category_name} Meditation
-                      </Link>
-                      <p className="text-white/40 text-[0.9rem] font-medium">
-                        Erstellt am: {formatDate(m.created_at)} · Dauer: {formatDuration(m.total_duration)}
-                      </p>
-                    </div>
-
-                    {/* Progress Bar Container */}
-                    <div className="w-full max-w-[95%] flex flex-col gap-2">
-                      <div className="w-full h-[2.5px] bg-white/10 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-accent relative"
-                          style={{ width: `100%` }} // Archive item implies fully generated
+                    {/* Content */}
+                    <div className="flex-1 flex flex-col gap-2 sm:gap-4 py-1 min-w-0">
+                      <div className="flex flex-col gap-0.5 sm:gap-1">
+                        <Link 
+                          href={`/meditation/meditation-structure?id=${m.id}`}
+                          className="text-lg sm:text-xl md:text-2xl font-bold text-white tracking-tight hover:text-accent transition-colors cursor-pointer truncate block"
                         >
-                          <div className="absolute top-0 right-0 w-4 h-full bg-white/40 blur-[4px]" />
+                          {m.category_name} Meditation
+                        </Link>
+                        <p className="text-white/40 text-[0.8rem] sm:text-[0.9rem] font-medium leading-tight">
+                          Erstellt am: {formatDate(m.created_at)} <span className="hidden sm:inline">· Dauer: {formatDuration(m.total_duration)}</span>
+                        </p>
+                        <p className="text-white/40 text-[0.8rem] font-medium sm:hidden">
+                          Dauer: {formatDuration(m.total_duration)}
+                        </p>
+                      </div>
+
+                      {/* Progress Bar Container */}
+                      <div className="w-full max-w-[95%] hidden sm:flex flex-col gap-2">
+                        <div className="w-full h-[2.5px] bg-white/10 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-accent relative"
+                            style={{ width: `100%` }} // Archive item implies fully generated
+                          >
+                            <div className="absolute top-0 right-0 w-4 h-full bg-white/40 blur-[4px]" />
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-5 pr-4">
-                    <Link 
-                      href={`/meditation/meditation-structure/audioplayer?id=${m.id}`} 
-                      className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center bg-accent rounded-full text-[#0b0f17] shadow-[0_10px_25px_rgba(242,202,80,0.35)] transition-all duration-300 hover:scale-110 hover:shadow-[0_15px_35px_rgba(242,202,80,0.5)] active:scale-95"
-                    >
-                      <Play size={24} fill="currentColor" className="ml-1" />
-                    </Link>
-                    <button 
-                      onClick={() => toggleLike(m.id)}
-                      className="text-white/40 hover:text-accent transition-all duration-300 transform hover:scale-110"
-                    >
-                      <Heart 
-                        size={28} 
-                        fill={isLiked ? "#f2ca50" : "none"} 
-                        className={isLiked ? "text-accent" : "text-white/60"} 
-                        strokeWidth={isLiked ? 0 : 2}
-                      />
-                    </button>
+                  <div className="flex items-center justify-between sm:justify-end gap-5 w-full sm:w-auto pt-2 sm:pt-0 border-t border-white/5 sm:border-0 pr-0 sm:pr-4">
+                    {/* Progress Bar for mobile view since it is hidden in the text container */}
+                    <div className="flex-1 sm:hidden mr-4">
+                      <div className="w-full h-[2px] bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-accent" style={{ width: "100%" }} />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 ml-auto">
+                      <Link 
+                        href={`/meditation/meditation-structure/audioplayer?id=${m.id}`} 
+                        className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 flex items-center justify-center bg-accent rounded-full text-[#0b0f17] shadow-[0_10px_25px_rgba(242,202,80,0.35)] transition-all duration-300 hover:scale-110 hover:shadow-[0_15px_35px_rgba(242,202,80,0.5)] active:scale-95"
+                      >
+                        <Play size={20} className="sm:size-[24px] ml-0.5 sm:ml-1" fill="currentColor" />
+                      </Link>
+                      <button 
+                        onClick={() => toggleLike(m.id)}
+                        className="text-white/40 hover:text-accent transition-all duration-300 transform hover:scale-110"
+                      >
+                        <Heart 
+                          size={24} 
+                          className={isLiked ? "text-accent" : "text-white/60"} 
+                          fill={isLiked ? "#f2ca50" : "none"} 
+                          strokeWidth={isLiked ? 0 : 2}
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );

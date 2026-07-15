@@ -47,21 +47,22 @@ function Waveform() {
   );
 }
 
-const TENSION_SPOTS = ["Kiefer & Gesicht", "Schultern & Nacken", "Brust & Herz", "Unterer Rücken", "Hände & Arme"];
+const TENSION_SPOTS = ["Kiefer & Gesicht", "Schultern & Nacken", "Brust & Herz", "Oberer Rücken", "Unterer Rücken", "Hände & Arme", "Bauch", "Hüfte & Becken", "Oberschenkel", "Knie & Gelenke", "Waden", "Füße"];
 
 // ─── Step indicator ───────────────────────────────────────────────────────────
 function StepBar({ current }: { current: number }) {
   const steps = ["1. Absicht", "2. Stimme", "3. Erfahrung", "4. Erzeugen"];
   return (
-    <div className="flex flex-col items-center gap-6">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col items-center gap-6 w-full">
+      {/* Scrollable steps list on mobile, centered on desktop */}
+      <div className="flex items-center gap-3 overflow-x-auto w-full max-w-[100vw] justify-start md:justify-center px-4 md:px-0 py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {steps.map((s, i) => {
           const isCompleted = i < current;
           const isActive = i === current;
           return (
-            <div key={i} className="flex items-center gap-3">
+            <div key={i} className="flex items-center gap-3 flex-shrink-0">
               <div 
-                className={`px-4 py-1.5 rounded-full text-[0.75rem] font-bold transition-all duration-300 ${
+                className={`px-4 py-1.5 rounded-full text-[0.75rem] font-bold transition-all duration-300 flex-shrink-0 ${
                   isActive 
                     ? "bg-accent text-[#0b0f17]" 
                     : isCompleted
@@ -72,7 +73,7 @@ function StepBar({ current }: { current: number }) {
                 {s}
               </div>
               {i < steps.length - 1 && (
-                <ChevronRight size={14} className="text-white/20" />
+                <ChevronRight size={14} className="text-white/20 flex-shrink-0" />
               )}
             </div>
           );
@@ -84,7 +85,7 @@ function StepBar({ current }: { current: number }) {
         {[0, 1, 2, 3, 4].map((dot) => (
           <div 
             key={dot} 
-            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${dot === 2 ? "bg-white/60" : "bg-white/20"}`} 
+            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${dot === current ? "bg-white/80" : "bg-white/20"}`} 
           />
         ))}
       </div>
@@ -106,7 +107,7 @@ function StepIntention({ selected, onSelect, onNext }: { selected: string; onSel
           return (
             <button
               key={id}
-              className={`group flex flex-col items-center gap-3 p-6 pt-8 pb-8 rounded-xl cursor-pointer transition-all duration-500 text-center relative overflow-hidden ${
+              className={`group flex flex-col items-center gap-3 p-4 sm:p-6 sm:pt-8 sm:pb-8 rounded-xl cursor-pointer transition-all duration-500 text-center relative overflow-hidden ${
                 isActive 
                   ? "bg-accent/10 border-2 border-accent shadow-[0_0_30px_rgba(242,202,80,0.15)] scale-[1.02]" 
                   : "bg-[#F5C5180F] border border-white/10 hover:bg-[#F5C5181A] hover:border-white/20"
@@ -137,9 +138,9 @@ function StepIntention({ selected, onSelect, onNext }: { selected: string; onSel
         })}
       </div>
 
-      <div className="flex flex-col items-center gap-4 mt-12 w-full">
+      <div className="flex flex-col items-center gap-4 mt-12 w-full px-4 sm:px-0">
         <button 
-          className={`px-12 py-4 rounded-full font-bold text-[1.1rem] transition-all duration-500 min-w-[320px] ${
+          className={`px-12 py-4 rounded-full font-bold text-[1.1rem] transition-all duration-500 w-full sm:w-[320px] min-w-0 ${
             selected 
               ? "bg-accent text-[#0b0f17] shadow-[0_10px_30px_rgba(242,202,80,0.3)] hover:scale-105 hover:shadow-[0_15px_40px_rgba(242,202,80,0.4)] cursor-pointer" 
               : "bg-[#F5C5180F] text-white/20 border border-white/10 cursor-not-allowed"
@@ -149,7 +150,7 @@ function StepIntention({ selected, onSelect, onNext }: { selected: string; onSel
         >
           {selected ? "Erzeuge deine Meditation" : "Erstelle Deine Meditation"}
         </button>
-        <p className="text-[0.85rem] text-white/40 font-medium">
+        <p className="text-[0.85rem] text-white/40 font-medium text-center">
           Konto erforderlich · Kostenlos testen
         </p>
       </div>
@@ -218,7 +219,7 @@ function StepVoice({
           return (
             <div
               key={v.id}
-              className={`group relative flex flex-col items-center p-12 rounded-[2.5rem] cursor-pointer transition-all duration-500 text-center overflow-hidden border-2 ${
+              className={`group relative flex flex-col items-center p-6 sm:p-12 rounded-[1.5rem] sm:rounded-[2.5rem] cursor-pointer transition-all duration-500 text-center overflow-hidden border-2 ${
                 isActive 
                   ? "bg-white/[0.04] border-accent shadow-[0_0_50px_rgba(242,202,80,0.15)] backdrop-blur-2xl" 
                   : "bg-white/[0.02] border-white/5 hover:border-white/20 backdrop-blur-xl"
@@ -227,14 +228,14 @@ function StepVoice({
             >
               {/* Audio Button - Now absolute to the card */}
               <button 
-                className="absolute top-8 right-8 w-14 h-14 rounded-full bg-accent text-[#0b0f17] flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95 z-20"
+                className="absolute top-4 right-4 sm:top-8 sm:right-8 w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-accent text-[#0b0f17] flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95 z-20"
                 onClick={(e) => handleTogglePlay(e, v)}
               >
                 {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
               </button>
 
               <div className="relative mb-6">
-                <div className={`w-28 h-28 rounded-full border-2 transition-all duration-500 overflow-hidden ${
+                <div className={`w-20 h-20 sm:w-28 sm:h-28 rounded-full border-2 transition-all duration-500 overflow-hidden ${
                   isActive ? "border-accent scale-105" : "border-white/10 group-hover:border-white/20"
                 }`}>
                   <img src={v.avatar_url || "/voice-serena.svg"} alt={v.name} className="w-full h-full object-cover" />
@@ -242,10 +243,10 @@ function StepVoice({
               </div>
               
               <div className="flex flex-col items-center gap-1 z-10 w-full">
-                <h3 className={`text-2xl font-bold mb-1 transition-colors duration-300 ${isActive ? "text-accent" : "text-white"}`}>{v.name}</h3>
-                <p className="text-[0.95rem] text-white/60 mb-6 font-medium">{v.short_description}</p>
+                <h3 className={`text-xl sm:text-2xl font-bold mb-1 transition-colors duration-300 ${isActive ? "text-accent" : "text-white"}`}>{v.name}</h3>
+                <p className="text-[0.85rem] sm:text-[0.95rem] text-white/60 mb-6 font-medium leading-snug">{v.short_description}</p>
                 
-                {isPlaying ? <Waveform /> : <div className="h-10 mb-8" />}
+                {isPlaying ? <Waveform /> : <div className="h-6 sm:h-10 mb-4 sm:mb-8" />}
                 
                 <div className="flex gap-2 flex-wrap justify-center mb-6">
                   {tagsArray.map((t) => (
@@ -270,7 +271,7 @@ function StepVoice({
       </div>
       
       <button 
-        className={`px-12 py-4 rounded-full font-bold text-[1.1rem] transition-all duration-500 min-w-[320px] mt-16 ${
+        className={`px-12 py-4 rounded-full font-bold text-[1.1rem] transition-all duration-500 w-full sm:w-[320px] min-w-0 mt-16 ${
           selected 
             ? "bg-accent text-[#0b0f17] shadow-[0_10px_30px_rgba(242,202,80,0.3)] hover:scale-105 hover:shadow-[0_15px_40px_rgba(242,202,80,0.4)] cursor-pointer opacity-100" 
             : "bg-white/5 text-accent/20 border border-white/5 cursor-not-allowed opacity-30 shadow-none"
@@ -455,15 +456,15 @@ function StepExperience({
         </div>
       </div>
 
-      <div className="flex gap-4 w-full mt-12">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full mt-12 px-4 sm:px-0">
         <button 
-          className="flex-1 bg-white/5 text-white/60 py-4 rounded-full font-bold text-[1.1rem] transition-all hover:bg-white/10"
+          className="w-full sm:flex-1 bg-white/5 text-white/60 py-4 rounded-full font-bold text-[1.1rem] transition-all hover:bg-white/10"
           onClick={onBack}
         >
           Zurück
         </button>
         <button 
-          className="flex-1 bg-accent text-[#0b0f17] py-4 rounded-full font-bold text-[1.1rem] transition-all shadow-[0_10px_30px_rgba(242,202,80,0.3)] hover:scale-105"
+          className="w-full sm:flex-1 bg-accent text-[#0b0f17] py-4 rounded-full font-bold text-[1.1rem] transition-all shadow-[0_10px_30px_rgba(242,202,80,0.3)] hover:scale-105"
           onClick={onNext}
         >
           Weiter
@@ -599,12 +600,14 @@ function StepGenerate({
       )}
       
       {isReady && (
-        <Link 
-          href={`/meditation/meditation-structure?id=${result.meditation_id}`}
-          className="bg-accent text-[#0b0f17] px-12 py-4 rounded-full font-bold text-[1.1rem] transition-all duration-500 min-w-[320px] mt-16 shadow-[0_10px_30px_rgba(242,202,80,0.3)] hover:scale-105 hover:shadow-[0_15px_40px_rgba(242,202,80,0.4)] animate-in fade-in slide-in-from-bottom-4"
-        >
-          Meditation abspielen
-        </Link>
+        <div className="w-full px-4 sm:px-0 flex justify-center mt-16">
+          <Link 
+            href={`/meditation/meditation-structure?id=${result.meditation_id}`}
+            className="bg-accent text-[#0b0f17] px-12 py-4 rounded-full font-bold text-[1.1rem] transition-all duration-500 w-full sm:w-[320px] min-w-0 text-center shadow-[0_10px_30px_rgba(242,202,80,0.3)] hover:scale-105 hover:shadow-[0_15px_40px_rgba(242,202,80,0.4)] animate-in fade-in slide-in-from-bottom-4"
+          >
+            Meditation abspielen
+          </Link>
+        </div>
       )}
 
       {isAnimationFinished && !result && !error && (
