@@ -101,6 +101,82 @@ function AudioPlayerContent() {
   const natureAudioRef = useRef<HTMLAudioElement | null>(null);
   const musicAudioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Web Audio API refs for iOS volume control
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const voiceGainNodeRef = useRef<GainNode | null>(null);
+  const musicGainNodeRef = useRef<GainNode | null>(null);
+  const natureGainNodeRef = useRef<GainNode | null>(null);
+
+  const isIOS = () => {
+    if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  };
+
+  const initAudioContext = () => {
+    if (typeof window === "undefined") return;
+    if (!audioContextRef.current) {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioContextClass) {
+        audioContextRef.current = new AudioContextClass();
+      }
+    }
+    if (audioContextRef.current && audioContextRef.current.state === "suspended") {
+      audioContextRef.current.resume();
+    }
+  };
+
+  const connectAudioToWebAudio = (audioElement: HTMLAudioElement, type: "voice" | "music" | "nature") => {
+    if (!isIOS()) return;
+
+    initAudioContext();
+    const ctx = audioContextRef.current;
+    if (!ctx) return;
+
+    audioElement.crossOrigin = "anonymous";
+
+    try {
+      let gainNode: GainNode;
+      if (type === "voice") {
+        if (!voiceGainNodeRef.current) {
+          voiceGainNodeRef.current = ctx.createGain();
+          voiceGainNodeRef.current.connect(ctx.destination);
+        }
+        gainNode = voiceGainNodeRef.current;
+        gainNode.gain.value = volume / 100;
+      } else if (type === "music") {
+        if (!musicGainNodeRef.current) {
+          musicGainNodeRef.current = ctx.createGain();
+          musicGainNodeRef.current.connect(ctx.destination);
+        }
+        gainNode = musicGainNodeRef.current;
+        gainNode.gain.value = musicLevel / 100;
+      } else {
+        if (!natureGainNodeRef.current) {
+          natureGainNodeRef.current = ctx.createGain();
+          natureGainNodeRef.current.connect(ctx.destination);
+        }
+        gainNode = natureGainNodeRef.current;
+        gainNode.gain.value = natureLevel / 100;
+      }
+
+      const source = ctx.createMediaElementSource(audioElement);
+      source.connect(gainNode);
+    } catch (err) {
+      console.error(`Failed to connect ${type} audio to Web Audio API:`, err);
+    }
+  };
+
+  // Clean up AudioContext on unmount
+  useEffect(() => {
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(err => console.error("Failed to close AudioContext:", err));
+        audioContextRef.current = null;
+      }
+    };
+  }, []);
+
   const handleStepEnded = () => {
     if (!meditation) return;
     const currentStep = meditation.steps[currentStepIndex];
@@ -168,8 +244,14 @@ function AudioPlayerContent() {
         if (musicAudioRef.current) {
           musicAudioRef.current.volume = (savedMusicLevelRef.current / 100) * fadeMultiplier;
         }
+        if (musicGainNodeRef.current && audioContextRef.current) {
+          musicGainNodeRef.current.gain.setValueAtTime((savedMusicLevelRef.current / 100) * fadeMultiplier, audioContextRef.current.currentTime);
+        }
         if (natureAudioRef.current) {
           natureAudioRef.current.volume = (savedNatureLevelRef.current / 100) * fadeMultiplier;
+        }
+        if (natureGainNodeRef.current && audioContextRef.current) {
+          natureGainNodeRef.current.gain.setValueAtTime((savedNatureLevelRef.current / 100) * fadeMultiplier, audioContextRef.current.currentTime);
         }
       }
 
@@ -196,9 +278,15 @@ function AudioPlayerContent() {
       musicAudioRef.current.volume = savedMusicLevelRef.current / 100;
       musicAudioRef.current.pause();
     }
+    if (musicGainNodeRef.current && audioContextRef.current) {
+      musicGainNodeRef.current.gain.setValueAtTime(savedMusicLevelRef.current / 100, audioContextRef.current.currentTime);
+    }
     if (natureAudioRef.current) {
       natureAudioRef.current.volume = savedNatureLevelRef.current / 100;
       natureAudioRef.current.pause();
+    }
+    if (natureGainNodeRef.current && audioContextRef.current) {
+      natureGainNodeRef.current.gain.setValueAtTime(savedNatureLevelRef.current / 100, audioContextRef.current.currentTime);
     }
     if (voiceAudioRef.current) {
       voiceAudioRef.current.currentTime = 0;
@@ -245,6 +333,7 @@ function AudioPlayerContent() {
       const natureAudio = new Audio(meditation.nature_sound.file);
       natureAudio.loop = true;
       natureAudio.volume = natureLevel / 100;
+      connectAudioToWebAudio(natureAudio, "nature");
       if (isPlaying) {
         natureAudio.play().catch(err => console.error("Nature sound playback failed:", err));
       }
@@ -264,6 +353,7 @@ function AudioPlayerContent() {
       const musicAudio = new Audio(meditation.music.file);
       musicAudio.loop = true;
       musicAudio.volume = musicLevel / 100;
+      connectAudioToWebAudio(musicAudio, "music");
       if (isPlaying) {
         musicAudio.play().catch(err => console.error("Music sound playback failed:", err));
       }
@@ -299,6 +389,7 @@ function AudioPlayerContent() {
     if (voiceUrl) {
       const audio = new Audio(voiceUrl);
       audio.volume = volume / 100;
+      connectAudioToWebAudio(audio, "voice");
       
       const initialTime = seekOffsetRef.current;
       seekOffsetRef.current = 0; // reset
@@ -377,17 +468,26 @@ function AudioPlayerContent() {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.volume = volume / 100;
     }
+    if (voiceGainNodeRef.current && audioContextRef.current) {
+      voiceGainNodeRef.current.gain.setValueAtTime(volume / 100, audioContextRef.current.currentTime);
+    }
   }, [volume]);
 
   useEffect(() => {
     if (natureAudioRef.current) {
       natureAudioRef.current.volume = natureLevel / 100;
     }
+    if (natureGainNodeRef.current && audioContextRef.current) {
+      natureGainNodeRef.current.gain.setValueAtTime(natureLevel / 100, audioContextRef.current.currentTime);
+    }
   }, [natureLevel]);
 
   useEffect(() => {
     if (musicAudioRef.current) {
       musicAudioRef.current.volume = musicLevel / 100;
+    }
+    if (musicGainNodeRef.current && audioContextRef.current) {
+      musicGainNodeRef.current.gain.setValueAtTime(musicLevel / 100, audioContextRef.current.currentTime);
     }
   }, [musicLevel]);
 
@@ -411,6 +511,7 @@ function AudioPlayerContent() {
 
 
   const handleSkipForward = () => {
+    initAudioContext();
     if (meditation && currentStepIndex < meditation.steps.length - 1) {
       delayDurationRef.current = 1000; // 1 second delay for manual skip
       setCurrentStepIndex((prev) => prev + 1);
@@ -418,6 +519,7 @@ function AudioPlayerContent() {
   };
 
   const handleSkipBackward = () => {
+    initAudioContext();
     if (currentStepIndex > 0) {
       delayDurationRef.current = 1000; // 1 second delay for manual skip
       setCurrentStepIndex((prev) => prev - 1);
@@ -430,6 +532,7 @@ function AudioPlayerContent() {
   };
 
   const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    initAudioContext();
     if (!meditation) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
@@ -639,7 +742,10 @@ function AudioPlayerContent() {
           </button>
 
           <button
-            onClick={() => setIsPlaying(!isPlaying)}
+            onClick={() => {
+              initAudioContext();
+              setIsPlaying(!isPlaying);
+            }}
             className="w-16 h-16 rounded-full bg-accent text-[#0b0f17] flex items-center justify-center transition-all duration-300 shadow-[0_0_20px_rgba(242,202,80,0.4)] hover:scale-105 hover:bg-accent group"
           >
             {isPlaying ? (
