@@ -44,6 +44,44 @@ function formatTime(seconds: number) {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
+// Helper function to generate silent WAV data URI dynamically
+function generateSilenceDataUri(durationSeconds: number): string {
+  const sampleRate = 8000;
+  const numSamples = sampleRate * durationSeconds;
+  const buffer = new ArrayBuffer(44 + numSamples);
+  const view = new DataView(buffer);
+
+  // RIFF identifier
+  view.setUint32(0, 0x52494646, false); // "RIFF"
+  view.setUint32(4, 36 + numSamples, true);
+  // RIFF type
+  view.setUint32(8, 0x57415645, false); // "WAVE"
+  // format chunk identifier
+  view.setUint32(12, 0x666d7420, false); // "fmt "
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, 1, true); // Mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate, true); // Byte rate
+  view.setUint16(32, 1, true); // Block align
+  view.setUint16(34, 8, true); // Bits per sample
+  // data chunk identifier
+  view.setUint32(36, 0x64617461, false); // "data"
+  view.setUint32(40, numSamples, true);
+
+  // Fill data chunk with silence (128 for 8-bit PCM)
+  const uint8View = new Uint8Array(buffer, 44, numSamples);
+  uint8View.fill(128);
+
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return "data:audio/wav;base64," + btoa(binary);
+}
+
 function AudioPlayerContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -107,6 +145,30 @@ function AudioPlayerContent() {
   const musicGainNodeRef = useRef<GainNode | null>(null);
   const natureGainNodeRef = useRef<GainNode | null>(null);
 
+  const voiceConnectedRef = useRef(false);
+  const musicConnectedRef = useRef(false);
+  const natureConnectedRef = useRef(false);
+  const mediaStreamDestinationRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+  const mixAudioRef = useRef<HTMLAudioElement | null>(null);
+  const pendingDelayRef = useRef<number>(0);
+
+  // Step helper calculations
+  const stepStartTimes = React.useMemo(() => {
+    if (!meditation) return [];
+    let acc = 0;
+    return meditation.steps.map((step) => {
+      const start = acc;
+      acc += parseDurationToSeconds(step.duration);
+      return start;
+    });
+  }, [meditation]);
+
+  const voiceDuration = meditation ? meditation.total_duration : 0;
+  const totalDuration = voiceDuration + OUTRO_DURATION;
+  const currentProgress = isOutro
+    ? voiceDuration + outroElapsed
+    : (stepStartTimes[currentStepIndex] || 0) + currentStepAudioTime;
+
   const isIOS = () => {
     if (typeof window === "undefined" || typeof navigator === "undefined") return false;
     return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
@@ -119,10 +181,23 @@ function AudioPlayerContent() {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       if (AudioContextClass) {
         audioContextRef.current = new AudioContextClass();
+
+        // On iOS, route Web Audio API output to a single HTML5 audio element stream for background playback
+        if (isIOS()) {
+          try {
+            mediaStreamDestinationRef.current = audioContextRef.current.createMediaStreamDestination();
+            const mixAudio = new Audio();
+            mixAudio.srcObject = mediaStreamDestinationRef.current.stream;
+            mixAudio.volume = 1.0;
+            mixAudioRef.current = mixAudio;
+          } catch (err) {
+            console.error("Failed to setup iOS MediaStreamDestination:", err);
+          }
+        }
       }
     }
     if (audioContextRef.current && audioContextRef.current.state === "suspended") {
-      audioContextRef.current.resume();
+      audioContextRef.current.resume().catch(err => console.error("Failed to resume AudioContext:", err));
     }
   };
 
@@ -133,6 +208,10 @@ function AudioPlayerContent() {
     const ctx = audioContextRef.current;
     if (!ctx) return;
 
+    if (type === "voice" && voiceConnectedRef.current) return;
+    if (type === "music" && musicConnectedRef.current) return;
+    if (type === "nature" && natureConnectedRef.current) return;
+
     audioElement.crossOrigin = "anonymous";
 
     try {
@@ -140,24 +219,36 @@ function AudioPlayerContent() {
       if (type === "voice") {
         if (!voiceGainNodeRef.current) {
           voiceGainNodeRef.current = ctx.createGain();
-          voiceGainNodeRef.current.connect(ctx.destination);
+          const destination = mediaStreamDestinationRef.current 
+            ? mediaStreamDestinationRef.current 
+            : ctx.destination;
+          voiceGainNodeRef.current.connect(destination);
         }
         gainNode = voiceGainNodeRef.current;
         gainNode.gain.value = volume / 100;
+        voiceConnectedRef.current = true;
       } else if (type === "music") {
         if (!musicGainNodeRef.current) {
           musicGainNodeRef.current = ctx.createGain();
-          musicGainNodeRef.current.connect(ctx.destination);
+          const destination = mediaStreamDestinationRef.current 
+            ? mediaStreamDestinationRef.current 
+            : ctx.destination;
+          musicGainNodeRef.current.connect(destination);
         }
         gainNode = musicGainNodeRef.current;
         gainNode.gain.value = musicLevel / 100;
+        musicConnectedRef.current = true;
       } else {
         if (!natureGainNodeRef.current) {
           natureGainNodeRef.current = ctx.createGain();
-          natureGainNodeRef.current.connect(ctx.destination);
+          const destination = mediaStreamDestinationRef.current 
+            ? mediaStreamDestinationRef.current 
+            : ctx.destination;
+          natureGainNodeRef.current.connect(destination);
         }
         gainNode = natureGainNodeRef.current;
         gainNode.gain.value = natureLevel / 100;
+        natureConnectedRef.current = true;
       }
 
       const source = ctx.createMediaElementSource(audioElement);
@@ -167,9 +258,50 @@ function AudioPlayerContent() {
     }
   };
 
-  // Clean up AudioContext on unmount
+  const handleStepEndedRef = useRef<() => void>(() => {});
+  const handleTimeUpdateRef = useRef<() => void>(() => {});
+
+  // Initialize persistent Audio elements
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const voice = new Audio();
+      voice.crossOrigin = "anonymous";
+      voice.ontimeupdate = () => {
+        handleTimeUpdateRef.current();
+      };
+      voice.onended = () => {
+        handleStepEndedRef.current();
+      };
+      voiceAudioRef.current = voice;
+
+      const nature = new Audio();
+      nature.crossOrigin = "anonymous";
+      nature.loop = true;
+      natureAudioRef.current = nature;
+
+      const music = new Audio();
+      music.crossOrigin = "anonymous";
+      music.loop = true;
+      musicAudioRef.current = music;
+    }
+
     return () => {
+      if (voiceAudioRef.current) {
+        voiceAudioRef.current.pause();
+        voiceAudioRef.current = null;
+      }
+      if (natureAudioRef.current) {
+        natureAudioRef.current.pause();
+        natureAudioRef.current = null;
+      }
+      if (musicAudioRef.current) {
+        musicAudioRef.current.pause();
+        musicAudioRef.current = null;
+      }
+      if (mixAudioRef.current) {
+        mixAudioRef.current.pause();
+        mixAudioRef.current = null;
+      }
       if (audioContextRef.current) {
         audioContextRef.current.close().catch(err => console.error("Failed to close AudioContext:", err));
         audioContextRef.current = null;
@@ -177,8 +309,44 @@ function AudioPlayerContent() {
     };
   }, []);
 
+  const playVoiceTrack = (url: string, offset = 0) => {
+    if (!voiceAudioRef.current) return;
+    const audio = voiceAudioRef.current;
+    
+    audio.src = url;
+    audio.load();
+    audio.currentTime = offset;
+    setCurrentStepAudioTime(offset);
+    
+    if (isPlayingRef.current) {
+      audio.play().catch(err => console.error("Voice play failed:", err));
+    }
+  };
+
+  const playSilence = (duration: number) => {
+    if (!voiceAudioRef.current) return;
+    setIsDelaying(true);
+    const silenceUri = generateSilenceDataUri(duration);
+    voiceAudioRef.current.src = silenceUri;
+    voiceAudioRef.current.load();
+    if (isPlayingRef.current) {
+      voiceAudioRef.current.play().catch(err => console.error("Silence play failed:", err));
+    }
+  };
+
   const handleStepEnded = () => {
     if (!meditation) return;
+
+    // If silence track ended, start the actual voice track
+    if (isDelaying) {
+      setIsDelaying(false);
+      const voiceUrl = meditation.steps[currentStepIndex]?.audio_file;
+      if (voiceUrl) {
+        playVoiceTrack(voiceUrl);
+      }
+      return;
+    }
+
     const currentStep = meditation.steps[currentStepIndex];
     const rawStepType = currentStep?.step_type;
     const stepType = rawStepType === "confirmation" ? "affirmation" : rawStepType;
@@ -186,23 +354,10 @@ function AudioPlayerContent() {
 
     if (loopSetting !== 0 && (loopSetting === "infinity" || repeatCount < loopSetting)) {
       setRepeatCount((prev) => prev + 1);
-      setCurrentStepAudioTime(0);
-      if (voiceAudioRef.current) {
-        voiceAudioRef.current.currentTime = 0;
-        if (isPlaying) {
-          if (playbackTimeoutRef.current) {
-            clearTimeout(playbackTimeoutRef.current);
-          }
-          setIsDelaying(true);
-          playbackTimeoutRef.current = setTimeout(() => {
-            setIsDelaying(false);
-            playbackTimeoutRef.current = null;
-          }, 2000); // 2 seconds delay on loop repeat
-        }
-      }
+      playSilence(2);
     } else {
       if (currentStepIndex < meditation.steps.length - 1) {
-        delayDurationRef.current = 2000; // 2 seconds delay before next step starts
+        pendingDelayRef.current = 2; // 2 seconds delay before next step starts
         setCurrentStepIndex((prev) => prev + 1);
       } else {
         // Voice ended on last step — start 30-second outro phase
@@ -211,9 +366,22 @@ function AudioPlayerContent() {
     }
   };
 
-  const handleStepEndedRef = useRef(handleStepEnded);
   useEffect(() => {
     handleStepEndedRef.current = handleStepEnded;
+  });
+
+  const handleTimeUpdate = () => {
+    if (voiceAudioRef.current) {
+      if (isDelaying) {
+        setCurrentStepAudioTime(0);
+      } else {
+        setCurrentStepAudioTime(voiceAudioRef.current.currentTime);
+      }
+    }
+  };
+
+  useEffect(() => {
+    handleTimeUpdateRef.current = handleTimeUpdate;
   });
 
   // Start the 30-second outro phase
@@ -291,6 +459,9 @@ function AudioPlayerContent() {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.currentTime = 0;
     }
+    if (isIOS() && mixAudioRef.current) {
+      mixAudioRef.current.pause();
+    }
   };
 
   // Fetch Meditation details
@@ -329,42 +500,36 @@ function AudioPlayerContent() {
 
   // Set up nature sound background loop
   useEffect(() => {
-    if (meditation?.nature_sound?.file) {
-      const natureAudio = new Audio(meditation.nature_sound.file);
-      natureAudio.loop = true;
-      natureAudio.volume = natureLevel / 100;
-      connectAudioToWebAudio(natureAudio, "nature");
-      if (isPlaying) {
-        natureAudio.play().catch(err => console.error("Nature sound playback failed:", err));
+    if (natureAudioRef.current) {
+      natureAudioRef.current.pause();
+      if (meditation?.nature_sound?.file) {
+        const natureAudio = natureAudioRef.current;
+        natureAudio.src = meditation.nature_sound.file;
+        natureAudio.load();
+        natureAudio.volume = natureLevel / 100;
+        connectAudioToWebAudio(natureAudio, "nature");
+        if (isPlaying) {
+          natureAudio.play().catch(err => console.error("Nature sound playback failed:", err));
+        }
       }
-      natureAudioRef.current = natureAudio;
     }
-    return () => {
-      if (natureAudioRef.current) {
-        natureAudioRef.current.pause();
-        natureAudioRef.current = null;
-      }
-    };
   }, [meditation?.nature_sound?.file]);
 
   // Set up background music loop
   useEffect(() => {
-    if (meditation?.music?.file) {
-      const musicAudio = new Audio(meditation.music.file);
-      musicAudio.loop = true;
-      musicAudio.volume = musicLevel / 100;
-      connectAudioToWebAudio(musicAudio, "music");
-      if (isPlaying) {
-        musicAudio.play().catch(err => console.error("Music sound playback failed:", err));
+    if (musicAudioRef.current) {
+      musicAudioRef.current.pause();
+      if (meditation?.music?.file) {
+        const musicAudio = musicAudioRef.current;
+        musicAudio.src = meditation.music.file;
+        musicAudio.load();
+        musicAudio.volume = musicLevel / 100;
+        connectAudioToWebAudio(musicAudio, "music");
+        if (isPlaying) {
+          musicAudio.play().catch(err => console.error("Music sound playback failed:", err));
+        }
       }
-      musicAudioRef.current = musicAudio;
     }
-    return () => {
-      if (musicAudioRef.current) {
-        musicAudioRef.current.pause();
-        musicAudioRef.current = null;
-      }
-    };
   }, [meditation?.music?.file]);
 
   // Manage voice audio instance when step changes or meditation loads
@@ -373,95 +538,139 @@ function AudioPlayerContent() {
 
     const voiceUrl = meditation.steps[currentStepIndex]?.audio_file;
 
-    // Pause previous audio
-    if (voiceAudioRef.current) {
-      voiceAudioRef.current.pause();
-      voiceAudioRef.current = null;
-    }
-
     // Clear any existing delay timer
     if (playbackTimeoutRef.current) {
       clearTimeout(playbackTimeoutRef.current);
       playbackTimeoutRef.current = null;
     }
-    setIsDelaying(false);
 
-    if (voiceUrl) {
-      const audio = new Audio(voiceUrl);
-      audio.volume = volume / 100;
-      connectAudioToWebAudio(audio, "voice");
-      
-      const initialTime = seekOffsetRef.current;
-      seekOffsetRef.current = 0; // reset
-      audio.currentTime = initialTime;
-      setCurrentStepAudioTime(initialTime);
+    if (voiceUrl && voiceAudioRef.current) {
+      const delay = pendingDelayRef.current;
+      pendingDelayRef.current = 0; // reset
 
-      audio.ontimeupdate = () => {
-        setCurrentStepAudioTime(audio.currentTime);
-      };
-
-      audio.onended = () => {
-        handleStepEndedRef.current();
-      };
-
-      voiceAudioRef.current = audio;
-
-      if (isPlaying) {
-        const delay = delayDurationRef.current;
-        delayDurationRef.current = 0; // reset
-
-        if (delay > 0) {
-          setIsDelaying(true);
-          playbackTimeoutRef.current = setTimeout(() => {
-            setIsDelaying(false);
-            playbackTimeoutRef.current = null;
-          }, delay);
-        } else {
-          audio.play().catch(err => console.error("Voice playback failed:", err));
-        }
+      if (delay > 0) {
+        playSilence(delay);
+      } else {
+        const initialTime = seekOffsetRef.current;
+        seekOffsetRef.current = 0; // reset
+        playVoiceTrack(voiceUrl, initialTime);
       }
     }
-
-    return () => {
-      if (voiceAudioRef.current) {
-        voiceAudioRef.current.pause();
-      }
-      if (playbackTimeoutRef.current) {
-        clearTimeout(playbackTimeoutRef.current);
-      }
-      if (outroIntervalRef.current) {
-        clearInterval(outroIntervalRef.current);
-        outroIntervalRef.current = null;
-      }
-    };
   }, [meditation, currentStepIndex]);
 
   // Sync play/pause state
   useEffect(() => {
     if (isPlaying) {
-      if (!isDelaying && !isOutro) {
+      // On iOS, play the mixed output element
+      if (isIOS() && mixAudioRef.current) {
+        mixAudioRef.current.play().catch(err => console.error("Mix audio play error:", err));
+      }
+
+      // Play voice audio (which plays the voice track or the silence WAV delay)
+      if (!isOutro) {
         voiceAudioRef.current?.play().catch(err => console.error("Voice play error:", err));
       }
+
       natureAudioRef.current?.play().catch(err => console.error("Nature play error:", err));
       musicAudioRef.current?.play().catch(err => console.error("Music play error:", err));
     } else {
       voiceAudioRef.current?.pause();
-      if (isDelaying) {
-        if (playbackTimeoutRef.current) {
-          clearTimeout(playbackTimeoutRef.current);
-          playbackTimeoutRef.current = null;
-        }
-        setIsDelaying(false);
-      }
-      // If we're stopping during outro, clean up the outro
-      if (isOutro) {
-        endOutro();
-        return;
-      }
       natureAudioRef.current?.pause();
       musicAudioRef.current?.pause();
+
+      if (isIOS() && mixAudioRef.current) {
+        mixAudioRef.current.pause();
+      }
+
+      if (isOutro) {
+        endOutro();
+      }
     }
-  }, [isPlaying, isDelaying]);
+  }, [isPlaying]);
+
+  // Audio Session type declaration (for iOS 16.4+)
+  useEffect(() => {
+    if (typeof window !== "undefined" && (navigator as any).audioSession) {
+      try {
+        (navigator as any).audioSession.type = "playback";
+      } catch (err) {
+        console.error("Failed to set audioSession type to playback:", err);
+      }
+    }
+  }, []);
+
+  // Sync Media Session metadata and actions
+  useEffect(() => {
+    if (!meditation || typeof window === "undefined" || !('mediaSession' in navigator)) return;
+
+    const artistName = meditation.charecter_voice?.name 
+      ? `Geführt von ${meditation.charecter_voice.name}` 
+      : "Gina Meditation";
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: meditation.title || "Meditation",
+      artist: artistName,
+      album: "Gina",
+      artwork: meditation.banner_url ? [
+        { src: meditation.banner_url, sizes: "512x512", type: "image/jpeg" }
+      ] : []
+    });
+
+    // Sync playback state
+    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+
+    navigator.mediaSession.setActionHandler("play", () => {
+      setIsPlaying(true);
+    });
+    navigator.mediaSession.setActionHandler("pause", () => {
+      setIsPlaying(false);
+    });
+    navigator.mediaSession.setActionHandler("previoustrack", () => {
+      handleSkipBackward();
+    });
+    navigator.mediaSession.setActionHandler("nexttrack", () => {
+      handleSkipForward();
+    });
+
+    return () => {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler("play", null);
+        navigator.mediaSession.setActionHandler("pause", null);
+        navigator.mediaSession.setActionHandler("previoustrack", null);
+        navigator.mediaSession.setActionHandler("nexttrack", null);
+      }
+    };
+  }, [meditation, isPlaying, currentStepIndex]);
+
+  // Sync Media Session position state
+  useEffect(() => {
+    if (typeof window !== "undefined" && 'mediaSession' in navigator && meditation && totalDuration > 0) {
+      try {
+        navigator.mediaSession.setPositionState({
+          duration: totalDuration,
+          playbackRate: 1.0,
+          position: Math.min(currentProgress, totalDuration)
+        });
+      } catch (err) {
+        console.error("Failed to set Media Session position state:", err);
+      }
+    }
+  }, [currentProgress, totalDuration, meditation]);
+
+  // Resume AudioContext on Visibility recovery (focus returned)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        if (isPlaying && audioContextRef.current && audioContextRef.current.state === "suspended") {
+          audioContextRef.current.resume().catch(err => console.error("Failed to resume AudioContext:", err));
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isPlaying]);
 
   // Volume controls sync
   useEffect(() => {
@@ -491,29 +700,11 @@ function AudioPlayerContent() {
     }
   }, [musicLevel]);
 
-  // Step helper calculations
-  const stepStartTimes = React.useMemo(() => {
-    if (!meditation) return [];
-    let acc = 0;
-    return meditation.steps.map((step) => {
-      const start = acc;
-      acc += parseDurationToSeconds(step.duration);
-      return start;
-    });
-  }, [meditation]);
-
-  const voiceDuration = meditation ? meditation.total_duration : 0;
-  const totalDuration = voiceDuration + OUTRO_DURATION;
-  const currentProgress = isOutro
-    ? voiceDuration + outroElapsed
-    : (stepStartTimes[currentStepIndex] || 0) + currentStepAudioTime;
-
-
 
   const handleSkipForward = () => {
     initAudioContext();
     if (meditation && currentStepIndex < meditation.steps.length - 1) {
-      delayDurationRef.current = 1000; // 1 second delay for manual skip
+      pendingDelayRef.current = 1; // 1 second delay for manual skip
       setCurrentStepIndex((prev) => prev + 1);
     }
   };
@@ -521,7 +712,7 @@ function AudioPlayerContent() {
   const handleSkipBackward = () => {
     initAudioContext();
     if (currentStepIndex > 0) {
-      delayDurationRef.current = 1000; // 1 second delay for manual skip
+      pendingDelayRef.current = 1; // 1 second delay for manual skip
       setCurrentStepIndex((prev) => prev - 1);
     } else {
       if (voiceAudioRef.current) {
@@ -545,14 +736,23 @@ function AudioPlayerContent() {
       const stepDuration = parseDurationToSeconds(meditation.steps[i].duration);
       if (clickedTime >= accumulatedTime && clickedTime <= accumulatedTime + stepDuration) {
         const offset = clickedTime - accumulatedTime;
+        
+        pendingDelayRef.current = 0; // Seek is instant
+        setIsDelaying(false); // Cancel any active delay
+
         if (i !== currentStepIndex) {
           seekOffsetRef.current = offset;
-        }
-        delayDurationRef.current = 0; // Seek is instant
-        setCurrentStepIndex(i);
-        setCurrentStepAudioTime(offset);
-        if (voiceAudioRef.current) {
-          voiceAudioRef.current.currentTime = offset;
+          setCurrentStepIndex(i);
+        } else {
+          if (voiceAudioRef.current) {
+            voiceAudioRef.current.currentTime = offset;
+          }
+          setCurrentStepAudioTime(offset);
+          
+          const voiceUrl = meditation.steps[i].audio_file;
+          if (voiceUrl) {
+            playVoiceTrack(voiceUrl, offset);
+          }
         }
         break;
       }
