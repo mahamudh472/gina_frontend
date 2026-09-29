@@ -90,7 +90,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose?
       <aside className={`fixed top-0 left-0 bottom-0 w-[220px] bg-[#0d1320] border-r border-white/8 flex flex-col py-5 z-[150] transition-transform duration-500 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"} ${!isInitialized ? "sidebar-initial-hide" : ""}`}>
         {/* Logo */}
         <Link 
-          href="/" 
+          href="/meditation/startseite" 
           onClick={() => {
             if (window.innerWidth < 768) {
               onClose?.();

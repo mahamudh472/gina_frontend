@@ -4,9 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { User, Mail, Lock, Eye, EyeOff, Check, Loader2 } from "lucide-react";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth, useRedirectIfAuthenticated } from "@/lib/AuthContext";
 
 export default function SignupPage() {
+  useRedirectIfAuthenticated();
+
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });

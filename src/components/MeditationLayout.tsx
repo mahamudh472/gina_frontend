@@ -96,7 +96,7 @@ export default function MeditationLayout({
         </button>
 
         <div className="static md:absolute md:left-1/2 md:-translate-x-1/2 pointer-events-auto flex items-center justify-center">
-          <Link href="/">
+          <Link href="/meditation/startseite">
             <img src="/logo.svg" alt="Visulara Logo" className="h-8 md:h-12 w-auto" />
           </Link>
         </div>

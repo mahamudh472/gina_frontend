@@ -205,3 +205,13 @@ export function useAuth() {
   }
   return context;
 }
+
+export function useRedirectIfAuthenticated() {
+  const { isAuthenticated, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading || !isAuthenticated) return;
+    router.replace("/meditation/startseite");
+  }, [loading, isAuthenticated, router]);
+}
