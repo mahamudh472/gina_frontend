@@ -1865,6 +1865,55 @@ function ExperienceBackground({ category }: { category?: string }) {
   );
 }
 
+// ─── Step 1 & 2 (Intention & Voice) Background ────────────────────────────────
+function StepIntentionVoiceBackground() {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [offsetY, setOffsetY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!imgRef.current) return;
+      const imgHeight = imgRef.current.offsetHeight;
+      const viewportHeight = window.innerHeight;
+      const scrollY = window.scrollY;
+
+      const stickyThreshold = imgHeight - viewportHeight;
+      if (stickyThreshold > 0 && scrollY > stickyThreshold) {
+        setOffsetY(scrollY - stickyThreshold);
+      } else {
+        setOffsetY(0);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
+    handleScroll();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, []);
+
+  return (
+    <div className="absolute inset-0 bg-[#080c14] pointer-events-none z-0 overflow-hidden">
+      <div 
+        className="w-full will-change-transform"
+        style={{ transform: `translate3d(0, ${offsetY}px, 0)` }}
+      >
+        <img
+          ref={imgRef}
+          src="/image.png"
+          alt="Hintergrund Intention und Stimme"
+          className="w-full h-auto object-cover min-w-full min-h-screen"
+        />
+        {/* Subtle bottom gradient to blend seamlessly into dark background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#080c14] pointer-events-none" />
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function NeueMeditationPage() {
   const { user } = useAuth();
@@ -1970,7 +2019,10 @@ export default function NeueMeditationPage() {
   };
 
   return (
-    <div className={`flex-1 flex flex-col relative pt-16 sm:pt-20 pb-16 px-4 sm:px-6 min-h-full ${step === 2 ? "bg-[#080c14]" : ""}`}>
+    <div className={`flex-1 flex flex-col relative pt-16 sm:pt-20 pb-16 px-4 sm:px-6 min-h-full ${(step === 0 || step === 1 || step === 2) ? "bg-[#080c14]" : ""}`}>
+      {/* Background image for Step 1 (Intention) and Step 2 (Voice) */}
+      {(step === 0 || step === 1) && <StepIntentionVoiceBackground />}
+
       {/* Background image for Step 3 (Experience) */}
       {step === 2 && <ExperienceBackground category={experienceCategory} />}
 
