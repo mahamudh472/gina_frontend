@@ -296,49 +296,49 @@ function StepVoice({
       </p>
 
       {/* Outer Card Container */}
-      <div className="w-full max-w-[820px] bg-[#0c141e]/90 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-md shadow-2xl">
+      <div className="w-full max-w-[820px] bg-[#0c141e]/75 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-md shadow-2xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 w-full">
           {/* ─── Card 1: Alexander ────────────────────────────────────────── */}
           <div
             onClick={() => onSelect(alexander.id)}
             className={`group relative flex flex-col items-center p-6 sm:p-8 rounded-2xl cursor-pointer transition-all duration-300 text-center overflow-hidden border ${
               isAlexanderActive
-                ? "bg-[#141b25]/90 border-[#F2CA50] shadow-[0_0_35px_rgba(242,202,80,0.25)] ring-1 ring-[#F2CA50]/50 scale-[1.01]"
-                : "bg-[#0e1622]/70 border-[#C59B27]/30 hover:border-[#F2CA50]/60 hover:bg-[#121926]/80"
+                ? "bg-transparent border-[#F2CA50] shadow-[0_0_35px_rgba(242,202,80,0.25)] ring-1 ring-[#F2CA50]/50 scale-[1.01]"
+                : "bg-transparent border-[#C59B27]/40 hover:border-[#F2CA50]/70 hover:scale-[1.005]"
             }`}
           >
             {/* Top Emblem */}
-            <div className="w-12 h-12 rounded-full border border-[#C59B27]/60 flex items-center justify-center mb-5 bg-[#C59B27]/10 text-[#F2CA50]">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
-                <circle cx="12" cy="3.5" r="0.75" fill="currentColor" />
-                <circle cx="10" cy="4.8" r="0.6" fill="currentColor" />
-                <circle cx="14" cy="4.8" r="0.6" fill="currentColor" />
-                <path d="M12 6.5L6.5 17H17.5L12 6.5Z" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M12 11L9.2 17H14.8L12 11Z" strokeLinecap="round" strokeLinejoin="round" />
+            <div className="flex items-center justify-center mb-5 text-[#F2CA50]">
+              <svg width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.3">
+                <circle cx="24" cy="24" r="21.5" strokeOpacity="0.8" />
+                <circle cx="24" cy="11.5" r="2" fill="currentColor" />
+                <path d="M24 17.5L11 35.5H37L24 17.5Z" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M24 25.5L17 35.5H31L24 25.5Z" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M20.5 30.5H27.5" strokeLinecap="round" />
               </svg>
             </div>
 
             {/* Circular Portrait */}
-            <div className="relative w-36 h-36 sm:w-40 sm:h-40 rounded-full border border-[#C59B27]/70 p-0.5 shadow-[0_0_25px_rgba(242,202,80,0.2)] mb-5 overflow-hidden">
+            <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full border border-[#F2CA50]/70 p-0.5 shadow-[0_0_28px_rgba(242,202,80,0.25)] mb-5 overflow-hidden">
               <img
                 src={alexander.avatar_url || "/voice-alexander.jpg"}
                 alt="Alexander"
                 className="w-full h-full object-cover rounded-full"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#F2CA50]/20 to-transparent mix-blend-color pointer-events-none rounded-full" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#F2CA50]/15 to-transparent mix-blend-color pointer-events-none rounded-full" />
             </div>
 
             {/* Name */}
-            <h3 className="font-serif text-[1.55rem] sm:text-[1.75rem] text-[#F2CA50] font-normal tracking-wide mb-2">
+            <h3 className="font-serif text-[1.55rem] sm:text-[1.8rem] text-[#F2CA50] font-normal tracking-wide mb-2">
               Alexander
             </h3>
 
             {/* Waveform */}
             <div 
-              className="flex items-center justify-center gap-[2.5px] h-6 my-2 cursor-pointer"
+              className="flex items-center justify-center gap-[2.5px] h-6 my-2.5 cursor-pointer"
               onClick={(e) => handleTogglePlay(e, alexander)}
             >
-              {[2, 3, 4, 3, 2, 4, 6, 9, 14, 18, 12, 8, 5, 3, 3, 3, 3, 3, 4, 6, 12, 16, 11, 7, 4, 3, 2, 2].map((h, i) => (
+              {[2, 2, 2, 2, 2, 2, 3, 5, 8, 13, 17, 13, 8, 5, 3, 2, 2, 2, 2, 2, 2, 2, 2, 3, 5, 8, 13, 17, 13, 8, 5, 3, 2, 2, 2, 2, 2, 2].map((h, i) => (
                 <div
                   key={i}
                   className="w-[2px] bg-[#F2CA50] rounded-full transition-all duration-300"
@@ -358,24 +358,26 @@ function StepVoice({
             onClick={() => onSelect(serena.id)}
             className={`group relative flex flex-col items-center p-6 sm:p-8 rounded-2xl cursor-pointer transition-all duration-300 text-center overflow-hidden border ${
               isSerenaActive
-                ? "bg-[#141b25]/90 border-[#38bdf8] shadow-[0_0_35px_rgba(56,189,248,0.25)] ring-1 ring-[#38bdf8]/50 scale-[1.01]"
-                : "bg-[#0e1622]/70 border-[#38bdf8]/30 hover:border-[#38bdf8]/60 hover:bg-[#121926]/80"
+                ? "bg-transparent border-[#38bdf8] shadow-[0_0_35px_rgba(56,189,248,0.25)] ring-1 ring-[#38bdf8]/50 scale-[1.01]"
+                : "bg-transparent border-[#38bdf8]/40 hover:border-[#38bdf8]/70 hover:scale-[1.005]"
             }`}
           >
             {/* Top Emblem */}
-            <div className="w-12 h-12 rounded-full border border-[#38bdf8]/50 flex items-center justify-center mb-5 bg-[#38bdf8]/10 text-[#38bdf8]">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
-                <circle cx="12" cy="3.5" r="0.75" fill="currentColor" />
-                <circle cx="12" cy="5.2" r="0.55" fill="currentColor" />
-                <path d="M12 7C9.5 10 9.5 14 12 17C14.5 14 14.5 10 12 7Z" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M12 11C8.5 11.5 6.5 14 7.5 16.5C9.5 17 11 16.5 12 17" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M12 11C15.5 11.5 17.5 14 16.5 16.5C14.5 17 13 16.5 12 17" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M6 16.5C8 18 10 18.5 12 18.5C14 18.5 16 18.0 18 16.5" strokeLinecap="round" />
+            <div className="flex items-center justify-center mb-5 text-[#38bdf8]">
+              <svg width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.3">
+                <circle cx="24" cy="24" r="21.5" strokeOpacity="0.8" />
+                <circle cx="24" cy="10.5" r="1.8" fill="currentColor" />
+                <path d="M24 14.5C21.5 18.5 21 24 24 29C27 24 26.5 18.5 24 14.5Z" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M22 21C18 19.5 14.5 21.5 14.5 26C16 28.5 19.5 29 22 29" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M26 21C30 19.5 33.5 21.5 33.5 26C32 28.5 28.5 29 26 29" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M22 29C17.5 28.2 12.5 29 12.5 31C12.5 32.8 17.5 33.5 22 32.5" strokeLinecap="round" />
+                <path d="M26 29C30.5 28.2 35.5 29 35.5 31C35.5 32.8 30.5 33.5 26 32.5" strokeLinecap="round" />
+                <path d="M18 33.5C21 35.5 27 35.5 30 33.5" strokeLinecap="round" />
               </svg>
             </div>
 
             {/* Circular Portrait */}
-            <div className="relative w-36 h-36 sm:w-40 sm:h-40 rounded-full border border-[#38bdf8]/60 p-0.5 shadow-[0_0_25px_rgba(56,189,248,0.2)] mb-5 overflow-hidden">
+            <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full border border-[#38bdf8]/70 p-0.5 shadow-[0_0_28px_rgba(56,189,248,0.25)] mb-5 overflow-hidden">
               <img
                 src={serena.avatar_url || "/voice-serena.jpg"}
                 alt="Serena"
@@ -384,19 +386,19 @@ function StepVoice({
             </div>
 
             {/* Name */}
-            <h3 className="font-serif text-[1.55rem] sm:text-[1.75rem] text-[#e0f2fe] font-normal tracking-wide mb-2">
+            <h3 className="font-serif text-[1.55rem] sm:text-[1.8rem] text-[#e0f2fe] font-normal tracking-wide mb-2">
               Serena
             </h3>
 
             {/* Waveform */}
             <div 
-              className="flex items-center justify-center gap-[2.5px] h-6 my-2 cursor-pointer"
+              className="flex items-center justify-center gap-[2.5px] h-6 my-2.5 cursor-pointer"
               onClick={(e) => handleTogglePlay(e, serena)}
             >
-              {[2, 3, 4, 3, 2, 4, 6, 9, 14, 18, 12, 8, 5, 3, 3, 3, 3, 3, 4, 6, 12, 16, 11, 7, 4, 3, 2, 2].map((h, i) => (
+              {[2, 2, 2, 2, 2, 2, 3, 5, 8, 13, 17, 13, 8, 5, 3, 2, 2, 2, 2, 2, 2, 2, 2, 3, 5, 8, 13, 17, 13, 8, 5, 3, 2, 2, 2, 2, 2, 2].map((h, i) => (
                 <div
                   key={i}
-                  className="w-[2px] bg-[#60a5fa] rounded-full transition-all duration-300"
+                  className="w-[2px] bg-[#38bdf8] rounded-full transition-all duration-300"
                   style={{ height: `${h}px` }}
                 />
               ))}
@@ -1368,10 +1370,10 @@ function StepExperience({
           <div className="w-full flex flex-col items-start animate-in fade-in duration-500">
             {/* ─── Second Section: In welchem Bereich suchst ─── */}
             <h3 className="text-[clamp(1.9rem,4vw,2.6rem)] font-serif text-white text-left mb-2 tracking-tight">
-              In welchem <span className="text-[#F2CA50]">Bereich</span> suchst
+              In welchem <span className="text-[#F2CA50]">Bereich</span> suchst Du Erleichterung?
             </h3>
             <p className="text-[0.9rem] sm:text-[0.95rem] text-white/70 text-left mb-8 max-w-[750px] font-normal">
-              In welchem Bereich benötigst Du einen kleinen Alltagshelfer?
+              In welchem Bereich benötigst Du einen kleinen Alltagshelfer? 
             </p>
 
             {/* 5 Cards Grid */}
