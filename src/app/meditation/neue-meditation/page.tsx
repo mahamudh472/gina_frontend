@@ -833,6 +833,66 @@ const ALLTAG_QUESTIONS = [
   },
 ];
 
+// ─── Reusable Card for the 5 Intentions (Emotionen, Heilung, Zukunft, Energie, Alltag) ───
+function IntentionCard({
+  title,
+  desc,
+  image,
+  isActive,
+  onClick,
+}: {
+  title: string;
+  desc: string;
+  image: string;
+  isActive: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group relative flex flex-col justify-end items-center text-center rounded-2xl overflow-hidden transition-all duration-300 aspect-[507/933] cursor-pointer p-3 sm:p-4 pb-5 ${
+        isActive
+          ? "border-2 border-[#F2CA50] shadow-[0_0_28px_rgba(242,202,80,0.38)] scale-[1.02] ring-1 ring-[#F2CA50]/50"
+          : "border border-white/10 hover:border-white/30 hover:scale-[1.01] bg-[#0d141e]/80 shadow-lg shadow-black/40"
+      }`}
+    >
+      {/* Background Image */}
+      <img
+        src={image}
+        alt={title}
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none transition-transform duration-500 group-hover:scale-105"
+      />
+
+      {/* Deep smooth gradient overlay for text readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 via-50% to-transparent pointer-events-none" />
+
+      {/* Active subtle tint */}
+      {isActive && (
+        <div className="absolute inset-0 bg-[#F2CA50]/5 pointer-events-none" />
+      )}
+
+      {/* Centered text container with uniform height ensuring all titles & descriptions align horizontally */}
+      <div className="relative z-10 flex flex-col items-center text-center w-full min-h-[135px] sm:min-h-[148px] justify-start px-0.5">
+        {/* Title area: top-aligned with fixed height so line 1 starts at the same level across all cards */}
+        <div className="w-full h-[2.75rem] sm:h-[3rem] flex items-start justify-center">
+          <h4 className="font-serif text-[0.98rem] sm:text-[1.08rem] text-white font-medium drop-shadow-md leading-tight text-center">
+            {title}
+          </h4>
+        </div>
+
+        {/* Small subtle accent divider */}
+        <div className="w-5 h-[1.5px] bg-[#F2CA50]/50 my-1.5 rounded-full flex-shrink-0" />
+
+        {/* Description text: centered, starts on identical baseline across all cards */}
+        <p className="text-[0.68rem] sm:text-[0.75rem] text-white/80 leading-snug drop-shadow font-normal text-center">
+          {desc}
+        </p>
+      </div>
+    </button>
+  );
+}
+
 function StepExperience({ 
   category = "identitaet",
   onSelectCategory,
@@ -956,37 +1016,16 @@ function StepExperience({
 
             {/* 6 Cards Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4 w-full mb-14">
-              {EMOTION_CARDS.map((card) => {
-                const isActive = activeEmotionCardId === card.id;
-                return (
-                  <button
-                    key={card.id}
-                    type="button"
-                    onClick={() => setActiveEmotionCardId(card.id)}
-                    className={`group relative flex flex-col justify-end text-left rounded-2xl overflow-hidden transition-all duration-300 aspect-[507/933] cursor-pointer p-3 sm:p-4 pb-5 ${
-                      isActive
-                        ? "border-2 border-[#F2CA50] shadow-[0_0_25px_rgba(242,202,80,0.35)] scale-[1.02] ring-1 ring-[#F2CA50]/50"
-                        : "border border-white/10 hover:border-white/30 bg-[#0d141e]/80"
-                    }`}
-                  >
-                    <img
-                      src={card.image}
-                      alt={card.title}
-                      className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
-
-                    <div className="relative z-10 flex flex-col">
-                      <h4 className="font-serif text-[1rem] sm:text-[1.1rem] text-white font-medium mb-1 drop-shadow-md leading-tight">
-                        {card.title}
-                      </h4>
-                      <p className="text-[0.7rem] sm:text-[0.76rem] text-white/80 leading-snug drop-shadow font-normal">
-                        {card.desc}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
+              {EMOTION_CARDS.map((card) => (
+                <IntentionCard
+                  key={card.id}
+                  title={card.title}
+                  desc={card.desc}
+                  image={card.image}
+                  isActive={activeEmotionCardId === card.id}
+                  onClick={() => setActiveEmotionCardId(card.id)}
+                />
+              ))}
             </div>
 
             {/* ─── Third Section: Erzähle uns von dir ─── */}
@@ -1067,37 +1106,16 @@ function StepExperience({
 
             {/* 5 Cards Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 w-full max-w-[1100px] mb-14">
-              {HEILUNG_CARDS.map((card) => {
-                const isActive = activeHeilungCardId === card.id;
-                return (
-                  <button
-                    key={card.id}
-                    type="button"
-                    onClick={() => setActiveHeilungCardId(card.id)}
-                    className={`group relative flex flex-col justify-end text-left rounded-2xl overflow-hidden transition-all duration-300 aspect-[507/933] cursor-pointer p-3 sm:p-4 pb-5 ${
-                      isActive
-                        ? "border-2 border-[#F2CA50] shadow-[0_0_25px_rgba(242,202,80,0.35)] scale-[1.02] ring-1 ring-[#F2CA50]/50"
-                        : "border border-white/10 hover:border-white/30 bg-[#0d141e]/80"
-                    }`}
-                  >
-                    <img
-                      src={card.image}
-                      alt={card.title}
-                      className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
-
-                    <div className="relative z-10 flex flex-col">
-                      <h4 className="font-serif text-[1rem] sm:text-[1.1rem] text-white font-medium mb-1 drop-shadow-md leading-tight">
-                        {card.title}
-                      </h4>
-                      <p className="text-[0.7rem] sm:text-[0.76rem] text-white/80 leading-snug drop-shadow font-normal">
-                        {card.desc}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
+              {HEILUNG_CARDS.map((card) => (
+                <IntentionCard
+                  key={card.id}
+                  title={card.title}
+                  desc={card.desc}
+                  image={card.image}
+                  isActive={activeHeilungCardId === card.id}
+                  onClick={() => setActiveHeilungCardId(card.id)}
+                />
+              ))}
             </div>
 
             {/* ─── Third Section: Erzähle uns von dir ─── */}
@@ -1178,37 +1196,16 @@ function StepExperience({
 
             {/* 5 Cards Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 w-full max-w-[1100px] mb-14">
-              {ZUKUNFT_CARDS.map((card) => {
-                const isActive = activeZukunftCardId === card.id;
-                return (
-                  <button
-                    key={card.id}
-                    type="button"
-                    onClick={() => setActiveZukunftCardId((prev) => (prev === card.id ? "" : card.id))}
-                    className={`group relative flex flex-col justify-end items-center text-center rounded-2xl overflow-hidden transition-all duration-300 aspect-[507/933] cursor-pointer p-3 sm:p-4 pb-5 ${
-                      isActive
-                        ? "border-2 border-[#F2CA50] shadow-[0_0_25px_rgba(242,202,80,0.35)] scale-[1.02] ring-1 ring-[#F2CA50]/50"
-                        : "border border-white/10 hover:border-white/30 bg-[#0d141e]/80"
-                    }`}
-                  >
-                    <img
-                      src={card.image}
-                      alt={card.title}
-                      className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
-
-                    <div className="relative z-10 flex flex-col items-center text-center w-full">
-                      <h4 className="font-serif text-[1rem] sm:text-[1.08rem] text-white font-medium mb-1 drop-shadow-md leading-tight text-center">
-                        {card.title}
-                      </h4>
-                      <p className="text-[0.7rem] sm:text-[0.76rem] text-white/80 leading-snug drop-shadow font-normal text-center">
-                        {card.desc}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
+              {ZUKUNFT_CARDS.map((card) => (
+                <IntentionCard
+                  key={card.id}
+                  title={card.title}
+                  desc={card.desc}
+                  image={card.image}
+                  isActive={activeZukunftCardId === card.id}
+                  onClick={() => setActiveZukunftCardId((prev) => (prev === card.id ? "" : card.id))}
+                />
+              ))}
             </div>
 
             {/* ─── Third Section: Erzähle uns von dir ─── */}
@@ -1289,37 +1286,16 @@ function StepExperience({
 
             {/* 5 Cards Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 w-full max-w-[1100px] mb-14">
-              {ENERGIE_CARDS.map((card) => {
-                const isActive = activeEnergieCardId === card.id;
-                return (
-                  <button
-                    key={card.id}
-                    type="button"
-                    onClick={() => setActiveEnergieCardId((prev) => (prev === card.id ? "" : card.id))}
-                    className={`group relative flex flex-col justify-end items-center text-center rounded-2xl overflow-hidden transition-all duration-300 aspect-[507/933] cursor-pointer p-3 sm:p-4 pb-5 ${
-                      isActive
-                        ? "border-2 border-[#F2CA50] shadow-[0_0_25px_rgba(242,202,80,0.35)] scale-[1.02] ring-1 ring-[#F2CA50]/50"
-                        : "border border-white/10 hover:border-white/30 bg-[#0d141e]/80"
-                    }`}
-                  >
-                    <img
-                      src={card.image}
-                      alt={card.title}
-                      className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
-
-                    <div className="relative z-10 flex flex-col items-center text-center w-full">
-                      <h4 className="font-serif text-[1rem] sm:text-[1.08rem] text-white font-medium mb-1 drop-shadow-md leading-tight text-center">
-                        {card.title}
-                      </h4>
-                      <p className="text-[0.7rem] sm:text-[0.76rem] text-white/80 leading-snug drop-shadow font-normal text-center">
-                        {card.desc}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
+              {ENERGIE_CARDS.map((card) => (
+                <IntentionCard
+                  key={card.id}
+                  title={card.title}
+                  desc={card.desc}
+                  image={card.image}
+                  isActive={activeEnergieCardId === card.id}
+                  onClick={() => setActiveEnergieCardId((prev) => (prev === card.id ? "" : card.id))}
+                />
+              ))}
             </div>
 
             {/* ─── Third Section: Erzähle uns von dir ─── */}
@@ -1400,37 +1376,16 @@ function StepExperience({
 
             {/* 5 Cards Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 w-full max-w-[1100px] mb-14">
-              {ALLTAG_CARDS.map((card) => {
-                const isActive = activeAlltagCardId === card.id;
-                return (
-                  <button
-                    key={card.id}
-                    type="button"
-                    onClick={() => setActiveAlltagCardId((prev) => (prev === card.id ? "" : card.id))}
-                    className={`group relative flex flex-col justify-end items-center text-center rounded-2xl overflow-hidden transition-all duration-300 aspect-[507/933] cursor-pointer p-3 sm:p-4 pb-5 ${
-                      isActive
-                        ? "border-2 border-[#F2CA50] shadow-[0_0_25px_rgba(242,202,80,0.35)] scale-[1.02] ring-1 ring-[#F2CA50]/50"
-                        : "border border-white/10 hover:border-white/30 bg-[#0d141e]/80"
-                    }`}
-                  >
-                    <img
-                      src={card.image}
-                      alt={card.title}
-                      className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
-
-                    <div className="relative z-10 flex flex-col items-center text-center w-full">
-                      <h4 className="font-serif text-[1rem] sm:text-[1.08rem] text-white font-medium mb-1 drop-shadow-md leading-tight text-center">
-                        {card.title}
-                      </h4>
-                      <p className="text-[0.7rem] sm:text-[0.76rem] text-white/80 leading-snug drop-shadow font-normal text-center">
-                        {card.desc}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
+              {ALLTAG_CARDS.map((card) => (
+                <IntentionCard
+                  key={card.id}
+                  title={card.title}
+                  desc={card.desc}
+                  image={card.image}
+                  isActive={activeAlltagCardId === card.id}
+                  onClick={() => setActiveAlltagCardId((prev) => (prev === card.id ? "" : card.id))}
+                />
+              ))}
             </div>
 
             {/* ─── Third Section: Erzähle uns von dir ─── */}
