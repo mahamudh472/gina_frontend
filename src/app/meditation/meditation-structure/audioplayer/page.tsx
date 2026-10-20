@@ -108,16 +108,6 @@ function AudioPlayerContent() {
   const [imageError, setImageError] = useState(false);
   const [isDelaying, setIsDelaying] = useState(false);
 
-  // Outro phase: 30-second block after voice ends where music/nature continue
-  const OUTRO_DURATION = 30; // seconds
-  const OUTRO_FADE_START = 25; // fade begins at this second
-  const [isOutro, setIsOutro] = useState(false);
-  const [outroElapsed, setOutroElapsed] = useState(0);
-  const outroIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const outroStartTimeRef = useRef<number>(0);
-  const savedMusicLevelRef = useRef<number>(50);
-  const savedNatureLevelRef = useRef<number>(75);
-
   // Refs for tracking delays, timeouts, seeking, and playing state
   const playbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const delayDurationRef = useRef<number>(0);
@@ -133,6 +123,16 @@ function AudioPlayerContent() {
   useEffect(() => {
     setRepeatCount(0);
   }, [currentStepIndex]);
+
+  // Outro phase: 30-second block after voice ends where music/nature continue
+  const OUTRO_DURATION = 30; // seconds
+  const OUTRO_FADE_START = 25; // fade begins at this second
+  const [isOutro, setIsOutro] = useState(false);
+  const [outroElapsed, setOutroElapsed] = useState(0);
+  const outroIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const outroStartTimeRef = useRef<number>(0);
+  const savedMusicLevelRef = useRef<number>(50);
+  const savedNatureLevelRef = useRef<number>(75);
 
   // HTML5 Audio Refs
   const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -1001,12 +1001,6 @@ function AudioPlayerContent() {
             value={musicLevel}
             onChange={setMusicLevel}
             label="Hintergrundmusik"
-          />
-          <MixerSlider
-            icon={<Wind size={18} />}
-            value={natureLevel}
-            onChange={setNatureLevel}
-            label="Naturgeräusche"
           />
         </div>
       </div>

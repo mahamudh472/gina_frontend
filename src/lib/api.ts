@@ -182,19 +182,14 @@ export interface BackgroundImage {
 }
 
 export interface ExperienceQuestionAnswers {
-  name: string;
-  goal: string;
-  how_you_feel?: string;
-  what_remains_outside?: string;
-  tension_spots?: string[];
+  Question: string;
+  Answer: string;
 }
 
 export interface GenerateMeditationRequest {
   category: string;
   charecter_voice_id: number;
-  experience_question_answers: ExperienceQuestionAnswers;
-  nature_sound_name?: string | null;
-  background_image_id?: number | null;
+  experience_question_answers: ExperienceQuestionAnswers[];
 }
 
 export interface MeditationStep {

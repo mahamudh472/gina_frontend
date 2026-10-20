@@ -3,12 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { 
-  ArrowLeft, X, Shield, Flame, Sparkles, Sun, Wind, Heart, 
-  Zap, Star, Loader2, ChevronRight, ChevronLeft, Play, Pause, CloudRain, 
-  Waves, VolumeX, UserPlus, Compass, Gem, Lightbulb, ArrowRight 
+  ArrowLeft, ChevronLeft, Loader2, Play, Pause, Lightbulb, ArrowRight 
 } from "lucide-react";
-import { api, CharacterVoice, NatureSound, BackgroundImage, GenerateMeditationResponse } from "@/lib/api";
-import { useAuth } from "@/lib/AuthContext";
+import { api, CharacterVoice, GenerateMeditationResponse } from "@/lib/api";
 
 // ─── Step data ───────────────────────────────────────────────────────────────
 const INTENTIONS = [
@@ -57,15 +54,15 @@ const INTENTIONS = [
 ];
 
 const INTENTION_TO_CATEGORY: Record<string, string> = {
-  identitaet: "relaxation",
-  emotion: "self_love",
+  identitaet: "self_discovery",
+  emotion: "emotional_healing",
   heilung: "inner_peace",
   zukunft: "transformation",
   energie: "energy",
-  alltag: "focus_clarity",
-  entspannung: "relaxation",
-  selbstliebe: "self_love",
-  fokus: "focus_clarity",
+  alltag: "grounding",
+  entspannung: "self_discovery",
+  selbstliebe: "emotional_healing",
+  fokus: "grounding",
   dankbarkeit: "gratitude",
   vertrauen: "trust",
   transformation: "transformation",
@@ -300,7 +297,10 @@ function StepVoice({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 w-full">
           {/* ─── Card 1: Alexander ────────────────────────────────────────── */}
           <div
-            onClick={() => onSelect(alexander.id)}
+            onClick={(e) => {
+              onSelect(alexander.id);
+              handleTogglePlay(e, alexander);
+            }}
             className={`group relative flex flex-col items-center p-6 sm:p-8 rounded-2xl cursor-pointer transition-all duration-300 text-center overflow-hidden border ${
               isAlexanderActive
                 ? "bg-transparent border-[#F2CA50] shadow-[0_0_35px_rgba(242,202,80,0.25)] ring-1 ring-[#F2CA50]/50 scale-[1.01]"
@@ -355,7 +355,10 @@ function StepVoice({
 
           {/* ─── Card 2: Serena ───────────────────────────────────────────── */}
           <div
-            onClick={() => onSelect(serena.id)}
+            onClick={(e) => {
+              onSelect(serena.id);
+              handleTogglePlay(e, serena);
+            }}
             className={`group relative flex flex-col items-center p-6 sm:p-8 rounded-2xl cursor-pointer transition-all duration-300 text-center overflow-hidden border ${
               isSerenaActive
                 ? "bg-transparent border-[#38bdf8] shadow-[0_0_35px_rgba(56,189,248,0.25)] ring-1 ring-[#38bdf8]/50 scale-[1.01]"
@@ -899,51 +902,34 @@ function StepExperience({
   category = "identitaet",
   onSelectCategory,
   onNext, 
-  onBack 
+  onBack,
+  experienceAnswers,
+  setExperienceAnswers
 }: { 
   category?: string;
   onSelectCategory?: (cat: string) => void;
-  feel?: string;
-  setFeel?: (v: string) => void;
-  goal?: string;
-  setGoal?: (v: string) => void;
-  remainsOutside?: string;
-  setRemainsOutside?: (v: string) => void;
-  tension?: string[];
-  toggleTension?: (spot: string) => void;
-  selectedNatureSoundName?: string | null;
-  setSelectedNatureSoundName?: (v: string | null) => void;
-  selectedBackgroundImageId?: number | null;
-  setSelectedBackgroundImageId?: (v: number | null) => void;
-  natureSounds?: NatureSound[];
-  backgroundImages?: BackgroundImage[];
+  experienceAnswers?: Record<string, string>;
+  setExperienceAnswers?: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   onNext: () => void; 
   onBack: () => void; 
 }) {
   const [selectedCategory, setSelectedCategory] = useState(category);
   const [activeCardId, setActiveCardId] = useState("mein_zuk_ich");
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [reflectionAnswers, setReflectionAnswers] = useState<Record<string, string>>({});
 
   // Emotionen states
   const [activeEmotionCardId, setActiveEmotionCardId] = useState("innerer_frieden");
-  const [emotionAnswers, setEmotionAnswers] = useState<Record<string, string>>({});
 
   // Heilung states
   const [activeHeilungCardId, setActiveHeilungCardId] = useState("loslassen");
-  const [heilungAnswers, setHeilungAnswers] = useState<Record<string, string>>({});
 
   // Zukunft states
   const [activeZukunftCardId, setActiveZukunftCardId] = useState("");
-  const [zukunftAnswers, setZukunftAnswers] = useState<Record<string, string>>({});
 
   // Energie states
   const [activeEnergieCardId, setActiveEnergieCardId] = useState("");
-  const [energieAnswers, setEnergieAnswers] = useState<Record<string, string>>({});
 
   // Alltag states
   const [activeAlltagCardId, setActiveAlltagCardId] = useState("");
-  const [alltagAnswers, setAlltagAnswers] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setSelectedCategory(category);
@@ -955,11 +941,7 @@ function StepExperience({
   };
 
   const handleAnswerChange = (id: string, text: string) => {
-    setAnswers((prev) => ({ ...prev, [id]: text }));
-  };
-
-  const handleReflectionChange = (id: string, text: string) => {
-    setReflectionAnswers((prev) => ({ ...prev, [id]: text }));
+    setExperienceAnswers?.((prev: Record<string, string>) => ({ ...(prev || {}), [id]: text }));
   };
 
   return (
@@ -1054,8 +1036,8 @@ function StepExperience({
                     <textarea
                       rows={2}
                       placeholder={q.placeholder}
-                      value={emotionAnswers[q.id] || ""}
-                      onChange={(e) => setEmotionAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                      value={experienceAnswers?.[q.id] || ""}
+                      onChange={(e) => handleAnswerChange(q.id, e.target.value)}
                       maxLength={500}
                       className="w-full bg-transparent resize-none outline-none text-[0.88rem] sm:text-[0.92rem] text-[#F2CA50] placeholder:text-white/30 font-normal leading-relaxed"
                     />
@@ -1144,8 +1126,8 @@ function StepExperience({
                     <textarea
                       rows={2}
                       placeholder={q.placeholder}
-                      value={heilungAnswers[q.id] || ""}
-                      onChange={(e) => setHeilungAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                      value={experienceAnswers?.[q.id] || ""}
+                      onChange={(e) => handleAnswerChange(q.id, e.target.value)}
                       maxLength={500}
                       className="w-full bg-transparent resize-none outline-none text-[0.88rem] sm:text-[0.92rem] text-[#F2CA50] placeholder:text-white/30 font-normal leading-relaxed"
                     />
@@ -1234,8 +1216,8 @@ function StepExperience({
                     <textarea
                       rows={2}
                       placeholder={q.placeholder}
-                      value={zukunftAnswers[q.id] || ""}
-                      onChange={(e) => setZukunftAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                      value={experienceAnswers?.[q.id] || ""}
+                      onChange={(e) => handleAnswerChange(q.id, e.target.value)}
                       maxLength={500}
                       className="w-full bg-transparent resize-none outline-none text-[0.88rem] sm:text-[0.92rem] text-[#F2CA50] placeholder:text-white/30 font-normal leading-relaxed"
                     />
@@ -1324,8 +1306,8 @@ function StepExperience({
                     <textarea
                       rows={2}
                       placeholder={q.placeholder}
-                      value={energieAnswers[q.id] || ""}
-                      onChange={(e) => setEnergieAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                      value={experienceAnswers?.[q.id] || ""}
+                      onChange={(e) => handleAnswerChange(q.id, e.target.value)}
                       maxLength={500}
                       className="w-full bg-transparent resize-none outline-none text-[0.88rem] sm:text-[0.92rem] text-[#F2CA50] placeholder:text-white/30 font-normal leading-relaxed"
                     />
@@ -1414,8 +1396,8 @@ function StepExperience({
                     <textarea
                       rows={2}
                       placeholder={q.placeholder}
-                      value={alltagAnswers[q.id] || ""}
-                      onChange={(e) => setAlltagAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                      value={experienceAnswers?.[q.id] || ""}
+                      onChange={(e) => handleAnswerChange(q.id, e.target.value)}
                       maxLength={500}
                       className="w-full bg-transparent resize-none outline-none text-[0.88rem] sm:text-[0.92rem] text-[#F2CA50] placeholder:text-white/30 font-normal leading-relaxed"
                     />
@@ -1514,7 +1496,7 @@ function StepExperience({
                       <div className="p-4 sm:p-5 pt-3 flex flex-col bg-[#0b1019] border-t border-white/5">
                         <textarea
                           placeholder="Schreib hier Deine Gedanken ..."
-                          value={answers[card.id] || ""}
+                          value={experienceAnswers?.[card.id] || ""}
                           onChange={(e) => handleAnswerChange(card.id, e.target.value)}
                           maxLength={500}
                           rows={3}
@@ -1568,8 +1550,8 @@ function StepExperience({
                     <textarea
                       rows={2}
                       placeholder="Deine Gedanken ..."
-                      value={reflectionAnswers[q.id] || ""}
-                      onChange={(e) => handleReflectionChange(q.id, e.target.value)}
+                      value={experienceAnswers?.[q.id] || ""}
+                      onChange={(e) => handleAnswerChange(q.id, e.target.value)}
                       maxLength={500}
                       className="w-full bg-transparent resize-none outline-none text-[0.88rem] sm:text-[0.92rem] text-[#F2CA50] placeholder:text-white/30 font-normal leading-relaxed"
                     />
@@ -1873,7 +1855,6 @@ function StepIntentionVoiceBackground() {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function NeueMeditationPage() {
-  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [intention, setIntention] = useState("");
   const [voice, setVoice] = useState<number | null>(null);
@@ -1881,18 +1862,11 @@ export default function NeueMeditationPage() {
 
   // Loaded Options
   const [voices, setVoices] = useState<CharacterVoice[]>([]);
-  const [natureSounds, setNatureSounds] = useState<NatureSound[]>([]);
-  const [backgroundImages, setBackgroundImages] = useState<BackgroundImage[]>([]);
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [optionsError, setOptionsError] = useState("");
 
   // Experience states:
-  const [feel, setFeel] = useState("");
-  const [goal, setGoal] = useState("");
-  const [remainsOutside, setRemainsOutside] = useState("");
-  const [tension, setTension] = useState<string[]>(["Schultern & Nacken", "Hände & Arme"]);
-  const [selectedNatureSoundName, setSelectedNatureSoundName] = useState<string | null>(null);
-  const [selectedBackgroundImageId, setSelectedBackgroundImageId] = useState<number | null>(null);
+  const [experienceAnswers, setExperienceAnswers] = useState<Record<string, string>>({});
 
   // Generation state:
   const [generationResult, setGenerationResult] = useState<GenerateMeditationResponse | null>(null);
@@ -1903,22 +1877,10 @@ export default function NeueMeditationPage() {
     async function loadOptions() {
       try {
         setOptionsLoading(true);
-        const [voicesRes, soundsRes, imagesRes] = await Promise.all([
-          api.meditation.getCharacterVoices().catch(() => []),
-          api.meditation.getNatureSounds().catch(() => []),
-          api.meditation.getBackgroundImages().catch(() => []),
-        ]);
+        const voicesRes = await api.meditation.getCharacterVoices().catch(() => []);
         if (voicesRes && voicesRes.length > 0) {
           setVoices(voicesRes);
           setVoice((v) => v ?? voicesRes[0].id);
-        }
-        if (soundsRes && soundsRes.length > 0) {
-          setNatureSounds(soundsRes);
-          setSelectedNatureSoundName((s) => s ?? soundsRes[0].name);
-        }
-        if (imagesRes && imagesRes.length > 0) {
-          setBackgroundImages(imagesRes);
-          setSelectedBackgroundImageId((b) => b ?? imagesRes[0].id);
         }
       } catch (err: unknown) {
         console.warn("Options load error ignored:", err);
@@ -1932,35 +1894,53 @@ export default function NeueMeditationPage() {
   const next = () => setStep((s) => Math.min(s + 1, 3));
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
-  const toggleTension = (spot: string) => {
-    setTension((prev) => prev.includes(spot) ? prev.filter((s) => s !== spot) : [...prev, spot]);
-  };
-
-  const handleStartGeneration = async () => {
+const handleStartGeneration = async () => {
     setStep(3);
     setGenerationLoading(true);
     setGenerationError("");
     setGenerationResult(null);
 
-    const category = INTENTION_TO_CATEGORY[intention] || "relaxation";
+    const category = INTENTION_TO_CATEGORY[intention] || "self_discovery";
     const voiceId = voice || (voices.length > 0 ? voices[0].id : 1);
-    
-    // Get first name from profile
-    const firstName = user?.full_name ? user.full_name.split(" ")[0] : "Anna";
+
+    // Map experienceCategory to question arrays
+    const getQuestionsForCategory = (cat: string) => {
+      switch (cat) {
+        case "identitaet":
+          return [
+            ...PERSPECTIVE_CARDS.map((c) => ({ id: c.id, label: c.question })),
+            ...REFLECTION_QUESTIONS,
+          ];
+        case "emotionen":
+          return EMOTION_QUESTIONS;
+        case "heilung":
+          return HEILUNG_QUESTIONS;
+        case "zukunft":
+          return ZUKUNFT_QUESTIONS;
+        case "energie":
+          return ENERGIE_QUESTIONS;
+        case "alltag":
+          return ALLTAG_QUESTIONS;
+        default:
+          return [];
+      }
+    };
+
+    const questions = getQuestionsForCategory(experienceCategory);
+
+    // Build question-answer pairs in new format (only dynamic questions)
+    const experienceQuestionAnswers = questions
+      .map((q) => ({
+        Question: q.label,
+        Answer: experienceAnswers?.[q.id] || "",
+      }))
+      .filter((qa) => qa.Answer && qa.Answer.trim() !== "");
 
     try {
       const result = await api.meditation.generate({
         category,
         charecter_voice_id: voiceId,
-        experience_question_answers: {
-          name: firstName,
-          goal: goal || "Tiefenentspannung",
-          how_you_feel: feel,
-          what_remains_outside: remainsOutside,
-          tension_spots: tension,
-        },
-        nature_sound_name: selectedNatureSoundName,
-        background_image_id: selectedBackgroundImageId,
+        experience_question_answers: experienceQuestionAnswers,
       });
       setGenerationResult(result);
       if (typeof window !== "undefined") {
@@ -2033,20 +2013,8 @@ export default function NeueMeditationPage() {
           <StepExperience
             category={experienceCategory}
             onSelectCategory={setExperienceCategory}
-            feel={feel}
-            setFeel={setFeel}
-            goal={goal}
-            setGoal={setGoal}
-            remainsOutside={remainsOutside}
-            setRemainsOutside={setRemainsOutside}
-            tension={tension}
-            toggleTension={toggleTension}
-            selectedNatureSoundName={selectedNatureSoundName}
-            setSelectedNatureSoundName={setSelectedNatureSoundName}
-            selectedBackgroundImageId={selectedBackgroundImageId}
-            setSelectedBackgroundImageId={setSelectedBackgroundImageId}
-            natureSounds={natureSounds}
-            backgroundImages={backgroundImages}
+            experienceAnswers={experienceAnswers}
+            setExperienceAnswers={setExperienceAnswers}
             onNext={handleStartGeneration}
             onBack={back}
           />
