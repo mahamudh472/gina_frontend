@@ -14,28 +14,28 @@ const INTENTIONS = [
     label: "Identität",
     sub: "Ich lebe meine Welt, so wie sie mir gefällt.",
     image: "/0%20Intensionen/identitaet.jpg",
-    category: "relaxation",
+    category: "identity",
   },
   {
     id: "emotion",
-    label: "Emotion",
+    label: "Emotionen",
     sub: "Verbinde dich mit deinen Gefühlen und stärke dein Herz.",
     image: "/0%20Intensionen/Emotion.jpg",
-    category: "self_love",
+    category: "emotions",
   },
   {
     id: "heilung",
     label: "Heilung",
     sub: "Lasse los, was dich belastet und heile dein Inneres.",
     image: "/0%20Intensionen/Heilung.jpg",
-    category: "inner_peace",
+    category: "healing",
   },
   {
     id: "zukunft",
     label: "Zukunft",
     sub: "Erschaffe dein Wunschleben und ziehe es in deine Zukunft.",
     image: "/0%20Intensionen/zukunft-gestalten.jpg",
-    category: "transformation",
+    category: "future",
   },
   {
     id: "energie",
@@ -49,24 +49,24 @@ const INTENTIONS = [
     label: "Alltag",
     sub: "Unterstützung für Deinen Alltag und mehr Leichtigkeit in Deinem Leben.",
     image: "/0%20Intensionen/Alltag.jpg",
-    category: "focus_clarity",
+    category: "everyday_life",
   },
 ];
 
 const INTENTION_TO_CATEGORY: Record<string, string> = {
-  identitaet: "self_discovery",
-  emotion: "emotional_healing",
-  heilung: "inner_peace",
-  zukunft: "transformation",
+  identitaet: "identity",
+  identity: "identity",
+  emotion: "emotions",
+  emotionen: "emotions",
+  emotions: "emotions",
+  heilung: "healing",
+  healing: "healing",
+  zukunft: "future",
+  future: "future",
   energie: "energy",
-  alltag: "grounding",
-  entspannung: "self_discovery",
-  selbstliebe: "emotional_healing",
-  fokus: "grounding",
-  dankbarkeit: "gratitude",
-  vertrauen: "trust",
-  transformation: "transformation",
-  frieden: "inner_peace",
+  energy: "energy",
+  alltag: "everyday_life",
+  everyday_life: "everyday_life",
 };
 
 function Waveform() {
@@ -1900,7 +1900,7 @@ const handleStartGeneration = async () => {
     setGenerationError("");
     setGenerationResult(null);
 
-    const category = INTENTION_TO_CATEGORY[intention] || "self_discovery";
+    const category = INTENTION_TO_CATEGORY[intention] || "identity";
     const voiceId = voice || (voices.length > 0 ? voices[0].id : 1);
 
     // Map experienceCategory to question arrays
